@@ -11,6 +11,12 @@ TO_DIR=""
 OLD_CNT=1
 NEW_CNT=1
 
+empty_dir=0
+function is_empty_dir()
+{
+	empty_dir=`ls -A $1 | wc -w`
+}
+
 if [ $1 == "mk" ]
 then
 	# 创建新的文件夹用于存储单词照片
