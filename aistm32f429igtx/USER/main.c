@@ -6,6 +6,7 @@
 #include <aigpio.h>
 #include <aisys.h>
 #include <aidelay.h>
+#include <ailed.h>
 
 /*
 ********************************************************************************
@@ -21,8 +22,11 @@
 */
 int main(void)
 {
-    // init
+    ai_sys_clock_init(360, 25, 2, 8);    // …Ë÷√ ±÷”180MHz
+    ai_delay_init(180);
+	// hardware init
+    
     while (1) {
-        // main loop
+		// main_loop
 	}
 }
