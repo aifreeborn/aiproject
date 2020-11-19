@@ -1,0 +1,32 @@
+LOCAL_PATH := $(shell pwd)
+PROJECT_PATH := $(LOCAL_PATH)/..
+
+CC := gcc
+CFLAGS := -Wall
+STRIP_TOOL := strip
+
+OUT_DIR := $(LOCAL_PATH)/out
+
+OBJS := $(patsubst %.c, %.o, $(filter %.c, $(SRC_FILES)))
+OBJS := $(subst $(realpath $(PROJECT_PATH))/, , $(OBJS))
+OBJS := $(addprefix $(OUT_DIR)/, $(OBJS))
+
+.PHONY: all clean
+all: $(TARGETS)
+
+$(OUT_DIR)/%.o : $(PROJECT_PATH)/%.c
+	@tput setaf 3
+	@echo 'Compiling object file "$@" ...'
+	@tput sgr0
+	$(Q_)mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(TARGETS) : $(OBJS)
+	@tput setaf 2
+	@echo 'Compiling object file "$@" ...'
+	@tput sgr0
+	$(Q_)mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+
+clean:
+	rm -rf $(OUT_DIR)
