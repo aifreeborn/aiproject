@@ -65,5 +65,13 @@ sbit       AI_D12_INT = P3^2;
 void ai_d12_write_cmd(uint8 cmd);
 uint8 ai_d12_read_byte(void);
 uint16 ai_d12_read_id(void);
+void ai_d12_write_byte(uint8 value);
+void ai_d12_select_end_point(uint8 num);
+uint8 ai_d12_read_end_point_buf(uint8 num, uint8 len, uint8 *buf);
+void ai_d12_clear_buf(void);
+void ai_d12_ack_setup(void);
+uint8 ai_d12_read_endp_last_stat(uint8 num);
+void ai_d12_validate_buf(void);
+uint8 ai_d12_write_endp_buf(uint8 num, uint8 len, uint8 *buf);
 
 #endif /* AI_PDIUSBD12_H_ */

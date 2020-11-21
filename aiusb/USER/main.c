@@ -4,6 +4,7 @@
 #include <aikeys.h>
 #include <aiuart.h>
 #include <aipdiusbd12.h>
+#include <aiusb.h>
 
 #define    AI_HDR_TBL_NUM    11U
  
@@ -97,6 +98,7 @@ void main()
 {
     uint8 i;
     uint16 d12_id = 0;
+    uint8 interrupt_src;
 
 	ai_leds_init();
     ai_sys_enable_interrupt();
@@ -117,10 +119,34 @@ void main()
         ai_uart_send_str(". ID is incorrect! What a pity!\r\n\r\n");
     }
 
+    ai_usb_disconnect();
+    ai_usb_connect();
+
     while (1) {
         /* main loop */
         AI_ALL_LEDS = ~ai_keys_pressed;
         ai_key_down_scan();
-        ai_key_up_scan();    
+        ai_key_up_scan(); 
+        
+        if (0 == ai_d12_get_int_pin()) {
+            ai_d12_write_cmd(AI_D12_READ_INTERRUPT_REG);
+            interrupt_src = ai_d12_read_byte();
+            if (interrupt_src & 0x80)
+                ai_usb_bus_suspend();
+            else if (interrupt_src & 0x40)
+                ai_usb_bus_reset();
+            else if (interrupt_src & 0x01)
+                ai_usb_ep0_out();
+            else if (interrupt_src & 0x02)
+                ai_usb_ep0_in();
+            else if (interrupt_src & 0x04)
+                ai_usb_ep1_out();
+            else if (interrupt_src & 0x08)
+                ai_usb_ep1_in();
+            else if (interrupt_src & 0x10)
+                ai_usb_ep2_out();
+            else if (interrupt_src & 0x20)
+                ai_usb_ep2_in();
+        }   
     }
 }

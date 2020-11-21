@@ -294,7 +294,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\CORE\UART;..\HRDWARE\KEYS;..\HRDWARE\LEDS;..\HRDWARE\USB</IncludePath>
+              <IncludePath>..\CORE;..\CORE\UART;..\HRDWARE\KEYS;..\HRDWARE\LEDS;..\HRDWARE\USB;..\HRDWARE\PDIUSBD12</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -385,6 +385,16 @@
               <FileName>aiusb.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HRDWARE\USB\aiusb.c</FilePath>
+            </File>
+            <File>
+              <FileName>aipdiusbd12.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HRDWARE\PDIUSBD12\aipdiusbd12.c</FilePath>
+            </File>
+            <File>
+              <FileName>aiusb_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HRDWARE\USB\aiusb_core.c</FilePath>
             </File>
           </Files>
         </Group>
