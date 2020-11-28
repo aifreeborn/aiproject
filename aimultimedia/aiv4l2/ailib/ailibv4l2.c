@@ -67,7 +67,7 @@ int aiv4l2_open(const char *dev, int flag)
         return -1;
     }
 
-    return 0;
+    return fd;
 }
 
 int aiv4l2_close(int fd)
@@ -133,8 +133,8 @@ int aiv4l2_enum_fmt(int fd, uint32_t fmt, enum v4l2_buf_type type)
     struct v4l2_fmtdesc fmtdesc;
     int found = 0;
 
-    fmtdesc.type = type;
-    fmtdesc.index = 0;
+    fmtdesc.type = type;     // 帧类型，应用程序设置
+    fmtdesc.index = 0;       // 要查询的格式序号，应用程序设置
     while (!ioctl(fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
         AI_LOG_INFO("fmt: %s\n", fmtdesc.description);
         if (fmtdesc.pixelformat == fmt) {
@@ -164,7 +164,7 @@ int aiv4l2_set_fmt(int fd, uint32_t *width, uint32_t *height, uint32_t fmt,
     pix_fmt.width = *width;
     pix_fmt.height = *height;
     pix_fmt.pixelformat = fmt;
-    pix_fmt.sizeimage = (*width * *height * aiv4l2_get_pixel_depth(fmt) / 8);
+    pix_fmt.sizeimage = (*width * *height * aiv4l2_get_pixel_depth(fmt)) / 8;
     pix_fmt.field = V4L2_FIELD_ANY;
 
     v4l2_fmt.fmt.pix = pix_fmt;
@@ -194,12 +194,12 @@ struct aiv4l2_buf *aiv4l2_requset_bufs(int fd, enum v4l2_buf_type type, int coun
         return NULL;
     }
 
-    buffer = (struct aiv4l2_buf *)malloc(sizeof(buffer));
+    buffer = (struct aiv4l2_buf *)malloc(sizeof(struct aiv4l2_buf));
     buffer->count = req.count;
     tmp_cnt = sizeof(struct aiv4l2_buf_unit) * buffer->count;
     buffer->buf = (struct aiv4l2_buf_unit *)malloc(tmp_cnt);
     buffer->type = type;
-    memset(buffer, 0, tmp_cnt);
+    memset(buffer->buf, 0, tmp_cnt);
     
     return buffer;
 }
@@ -222,7 +222,7 @@ int aiv4l2_query_buf(int fd, struct aiv4l2_buf *buf)
         v4l2_buf.memory = V4L2_MEMORY_MMAP;
         v4l2_buf.index = i;
 
-        if (ioctl(fd, VIDIOC_QUERYBUF, &buf) < 0) {
+        if (ioctl(fd, VIDIOC_QUERYBUF, &v4l2_buf) < 0) {
             AI_LOG_ERROR("VIDIOC_QUERYBUF failed.\n");
             return -1;
         }
