@@ -7,6 +7,9 @@ extern "C" {
 
 #include <stdint.h>
 
+#define    AI_HIGH_LEVEL    1
+#define    AI_LOW_LEVEL     0
+
 /* 定义一些常用的数据类型短关键字 */ 
 typedef      uint8_t       u8;
 typedef      uint16_t      u16;

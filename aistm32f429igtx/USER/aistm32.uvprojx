@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -428,6 +428,11 @@
               <FileName>ailed.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\ailed.c</FilePath>
+            </File>
+            <File>
+              <FileName>aikey.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\KEY\aikey.c</FilePath>
             </File>
           </Files>
         </Group>

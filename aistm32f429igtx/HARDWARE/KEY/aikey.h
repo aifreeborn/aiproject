@@ -1,5 +1,5 @@
-#ifndef AI_LED_H_
-#define AI_LED_H_	
+#ifndef AI_KEY_H_
+#define AI_KEY_H_	
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,33 +17,29 @@ extern "C" {
 *                                 MACRO
 ********************************************************************************
 */
-#define    AI_LED0    PB_OUT(1)
-#define    AI_LED1    PB_OUT(0)
-#define    AI_DS0     AI_LED0
-#define    AI_DS1     AI_LED1
-    
-typedef enum {
-    AI_LED_ON = 0,
-    AI_LED_OFF
-} ai_led_switch_t;
+#define    AI_KEY0    PH_IN(3)
+#define    AI_KEY1    PH_IN(2)
+#define    AI_KEY2    PC_IN(13)
+#define    AI_WK_UP   PA_IN(0)
 
 typedef enum {
-    AI_LED_DS0 = 0,
-    AI_LED_DS1
-} ai_led_name_t;
+    AI_KEY_ALL_UP = 0,
+    AI_KEY0_DOWN,
+    AI_KEY1_DOWN,
+    AI_KEY2_DOWN,
+    AI_KEY_WK_DOWN
+} ai_key_pressed_t;
 
 /*
 ********************************************************************************
 *                           FUNCTION PROTOTYPES
 ********************************************************************************
 */ 
-void ai_led_init(void);
-void ai_led_on(u8 num);
-void ai_led_off(u8 num);
+void ai_key_init(void);
+u8 ai_key_scan(u8 mode);
     
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* AI_LED_H_ */
-
+#endif /* AI_KEY_H_ */

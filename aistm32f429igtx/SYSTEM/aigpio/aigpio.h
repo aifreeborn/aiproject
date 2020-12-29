@@ -43,7 +43,8 @@ typedef enum {
     GPIO_SPEED_2M = 0,               // GPIO速度2Mhz
     GPIO_SPEED_25M,                  // GPIO速度25Mhz
     GPIO_SPEED_50M,                  // GPIO速度50Mhz
-    GPIO_SPEED_100M                  // GPIO速度100Mhz
+    GPIO_SPEED_100M,                 // GPIO速度100Mhz
+    GPIO_SPEED_NULL = 255
 } ai_gpio_speed_t;
 
 typedef enum {
@@ -55,7 +56,8 @@ typedef enum {
 
 typedef enum {
     GPIO_OTYPE_PP = 0,               // 推挽输出
-    GPIO_OTYPE_OD                    // 开漏输出
+    GPIO_OTYPE_OD,                   // 开漏输出
+    GPIO_OTYPE_NULL = 255
 } ai_gpio_otype_t;
 
 /* GPIO引脚编号定义 */
