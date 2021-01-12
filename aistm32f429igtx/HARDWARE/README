@@ -1,1 +1,23 @@
 外设驱动程序目录, 每个外设一个模块.
+
+1.函数注释模板
+/*
+********************************************************************************
+*    Function: 
+* Description: 
+*       Input: 
+*      Output: None
+*      Return: On success, 0 is returned,
+*              On error, -1 is returned.
+*      Others: None
+********************************************************************************
+*/
+
+2.头文件对C++调用的处理
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

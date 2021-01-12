@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -425,6 +425,11 @@
           <GroupName>HARDWARE</GroupName>
           <Files>
             <File>
+              <FileName>README</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\HARDWARE\README</FilePath>
+            </File>
+            <File>
               <FileName>ailed.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\ailed.c</FilePath>
@@ -438,6 +443,21 @@
               <FileName>aiexti.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\EXTI\aiexti.c</FilePath>
+            </File>
+            <File>
+              <FileName>aiiwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\IWDG\aiiwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>aiwwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\WWDG\aiwwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>aitimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TIMER\aitimer.c</FilePath>
             </File>
           </Files>
         </Group>
