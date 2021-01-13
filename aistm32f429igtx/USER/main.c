@@ -55,7 +55,7 @@ int main(void)
         ai_delay_ms(10);
         ai_test_pwm_ds0();
         ai_test_capture();
-	}
+    }
 }
 
 /*
