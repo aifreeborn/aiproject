@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -458,6 +458,11 @@
               <FileName>aitimer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\TIMER\aitimer.c</FilePath>
+            </File>
+            <File>
+              <FileName>aitouchpad.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TOUCHPAD\aitouchpad.c</FilePath>
             </File>
           </Files>
         </Group>

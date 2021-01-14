@@ -19,6 +19,7 @@
 #include "aiiwdg.h"
 #include "aitimer.h"
 #include "aiwwdg.h"
+#include "aitouchpad.h"
  
 /*
 ********************************************************************************
@@ -30,6 +31,7 @@ void ai_test_usart(void);
 void ai_test_iwdg(void);
 void ai_test_pwm_ds0(void);
 void ai_test_capture(void);
+void ai_test_touchpad(void);
 
 /*
 ********************************************************************************
@@ -44,6 +46,7 @@ int main(void)
 	ai_uart_init(90, 115200);
     ai_led_init();
     ai_key_init();
+    ai_touchpad_init(2);  // 45MHz频率计数
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -52,9 +55,8 @@ int main(void)
     
     /* main loop */
     while (1) {
+        ai_test_touchpad();
         ai_delay_ms(10);
-        ai_test_pwm_ds0();
-        ai_test_capture();
     }
 }
 
@@ -197,5 +199,18 @@ void ai_test_capture(void)
         temp += ai_timer5_ch1_capture_val;
         printf("HIGH: %lld us\r\n", temp);
         ai_timer5_ch1_capture_stat = 0;
+    }
+}
+
+void ai_test_touchpad(void)
+{
+    static u8 t = 0;
+    
+    if (!ai_touchpad_scan(0))
+        AI_DS1 = !AI_DS1;
+    t++;
+    if (t == 150) {
+        t = 0;
+        AI_DS0 = !AI_DS0;
     }
 }
