@@ -20,7 +20,15 @@
 #include "aitimer.h"
 #include "aiwwdg.h"
 #include "aitouchpad.h"
- 
+#include "aiwm9825g6kh.h"
+
+/*
+********************************************************************************
+*                               Private variables
+********************************************************************************
+*/
+static u16 ai_tests_ram[250000] __attribute__((at(0XC0000000)));  //测试用数组
+
 /*
 ********************************************************************************
 *                           FUNCTION PROTOTYPES
@@ -32,6 +40,7 @@ void ai_test_iwdg(void);
 void ai_test_pwm_ds0(void);
 void ai_test_capture(void);
 void ai_test_touchpad(void);
+void ai_test_sdram(void);
 
 /*
 ********************************************************************************
@@ -40,23 +49,44 @@ void ai_test_touchpad(void);
 */
 int main(void)
 {
+    u8 i = 0;
+    u32 ts = 0;
+    u8 key = AI_KEY_ALL_UP;
+    
     ai_sys_clock_init(360, 25, 2, 8);    // 设置时钟180MHz
     ai_delay_init(180);
     /* 外设初始化 */
 	ai_uart_init(90, 115200);
     ai_led_init();
     ai_key_init();
-    ai_touchpad_init(2);  // 45MHz频率计数
+    ai_wm9825g6kh_init();
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
     ai_led_on(AI_LED_DS0);
     ai_led_off(AI_LED_DS1);
     
+    for (ts = 0; ts < 250000; ts++) {
+		ai_tests_ram[ts] = ts;            //预存测试数据	 
+  	}
+    
     /* main loop */
     while (1) {
-        ai_test_touchpad();
-        ai_delay_ms(10);
+        key = ai_key_scan(0);
+        if (key == AI_KEY0_DOWN) {
+            ai_test_sdram();
+        } else if (key == AI_KEY1_DOWN) {
+            for (ts = 0; ts < 250000; ts++) {
+                printf("ai_tests_ram[%d]: %d\r\n", ts, ai_tests_ram[ts]);
+            }
+        } else {
+            ai_delay_ms(10);
+        }
+        i++;
+        if (i == 20) {
+            i = 0;
+            AI_DS0 = !AI_DS0;
+        }
     }
 }
 
@@ -212,5 +242,37 @@ void ai_test_touchpad(void)
     if (t == 150) {
         t = 0;
         AI_DS0 = !AI_DS0;
+    }
+}
+
+/*
+********************************************************************************
+*    Function: SDRAM测试函数
+* Description: 1）初始化 ai_wm9825g6kh_init
+*              
+*       Input: void
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_test_sdram(void)
+{
+    u32 i = 0;
+    u32 tmp = 0;
+    u32 sval = 0;
+    
+    for (i = 0; i < 32 * 1024 * 1024; i += 16 * 1024) {
+        *(vu32 *)(AI_BANK5_SDRAM_ADDR + i) = tmp;
+        tmp++;
+    }
+    for (i = 0; i < 32 * 1024 * 1024; i += 16 * 1024) {
+        tmp = *(vu32 *)(AI_BANK5_SDRAM_ADDR + i);
+        if (i == 0) {
+            sval = tmp;
+        } else if (tmp <= sval) {
+            break;
+        }
+        printf("SDRAM Capacity: %dKB\r\n", (u16)(tmp - sval + 1) * 16);
     }
 }
