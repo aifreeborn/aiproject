@@ -27,7 +27,7 @@
 *                               Private variables
 ********************************************************************************
 */
-static u16 ai_tests_ram[250000] __attribute__((at(0XC0000000)));  //测试用数组
+//static u16 ai_tests_ram[250000] __attribute__((at(0XC0000000)));  //测试用数组
 
 /*
 ********************************************************************************
@@ -67,7 +67,7 @@ int main(void)
     ai_led_off(AI_LED_DS1);
     
     for (ts = 0; ts < 250000; ts++) {
-		ai_tests_ram[ts] = ts;            //预存测试数据	 
+		//ai_tests_ram[ts] = ts;            //预存测试数据	 
   	}
     
     /* main loop */
@@ -77,7 +77,7 @@ int main(void)
             ai_test_sdram();
         } else if (key == AI_KEY1_DOWN) {
             for (ts = 0; ts < 250000; ts++) {
-                printf("ai_tests_ram[%d]: %d\r\n", ts, ai_tests_ram[ts]);
+                //printf("ai_tests_ram[%d]: %d\r\n", ts, ai_tests_ram[ts]);
             }
         } else {
             ai_delay_ms(10);
