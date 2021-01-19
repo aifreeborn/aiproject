@@ -55,9 +55,15 @@ extern ai_ltdc_dev_t ai_ltdc_dev;
 *                           FUNCTION PROTOTYPES
 ********************************************************************************
 */ 
+void ai_ltdc_set_disp_dir(u8 direction);
 int ai_ltdc_init(void);
 void ai_ltdc_switch(u8 action);
+u16 ai_ltdc_read_panel_id(void);
 void ai_ltdc_draw_point(u16 x, u16 y, u32 color);
+u32 ai_ltdc_read_point(u16 x, u16 y);
+void ai_ltdc_fill(u16 sx, u16 sy, u16 ex, u16 ey, u32 color);
+void ai_ltdc_color_fill(u16 sx, u16 sy, u16 ex, u16 ey, u16 *color);
+void ai_ltdc_clear(u32 color);
 
 #ifdef __cplusplus
 }

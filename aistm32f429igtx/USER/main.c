@@ -21,6 +21,8 @@
 #include "aiwwdg.h"
 #include "aitouchpad.h"
 #include "aiwm9825g6kh.h"
+#include "ailtdc.h"
+#include "ailcd.h"
 
 /*
 ********************************************************************************
@@ -49,44 +51,69 @@ void ai_test_sdram(void);
 */
 int main(void)
 {
-    u8 i = 0;
-    u32 ts = 0;
-    u8 key = AI_KEY_ALL_UP;
+	u16 x = 0;
+    u8 lcd_id[12];
     
     ai_sys_clock_init(360, 25, 2, 8);    // 设置时钟180MHz
     ai_delay_init(180);
+	
     /* 外设初始化 */
 	ai_uart_init(90, 115200);
     ai_led_init();
     ai_key_init();
     ai_wm9825g6kh_init();
+    ai_lcd_init();
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
     ai_led_on(AI_LED_DS0);
     ai_led_off(AI_LED_DS1);
-    
-    for (ts = 0; ts < 250000; ts++) {
-		//ai_tests_ram[ts] = ts;            //预存测试数据	 
-  	}
+	ai_brush_color = AI_RED;
+    sprintf((char*)lcd_id, "LCD ID:%04X", ai_lcd_dev.id);
     
     /* main loop */
     while (1) {
-        key = ai_key_scan(0);
-        if (key == AI_KEY0_DOWN) {
-            ai_test_sdram();
-        } else if (key == AI_KEY1_DOWN) {
-            for (ts = 0; ts < 250000; ts++) {
-                //printf("ai_tests_ram[%d]: %d\r\n", ts, ai_tests_ram[ts]);
-            }
-        } else {
-            ai_delay_ms(10);
-        }
-        i++;
-        if (i == 20) {
-            i = 0;
-            AI_DS0 = !AI_DS0;
-        }
+        switch (x) {
+        case 0:
+            ai_lcd_clear(AI_WHITE);break;
+        case 1:
+            ai_lcd_clear(AI_BLACK);break;
+        case 2:
+            ai_lcd_clear(AI_BLUE);break;
+        case 3:
+            ai_lcd_clear(AI_RED);break;
+        case 4:
+            ai_lcd_clear(AI_MAGENTA);break;
+        case 5:
+            ai_lcd_clear(AI_GREEN);break;
+        case 6:
+            ai_lcd_clear(AI_CYAN);break;
+        case 7:
+            ai_lcd_clear(AI_YELLOW);break;
+        case 8:
+            ai_lcd_clear(AI_BRRED);break;
+        case 9:
+            ai_lcd_clear(AI_GRAY);break;
+        case 10:
+            ai_lcd_clear(AI_LGRAY);break;
+        case 11:
+            ai_lcd_clear(AI_BROWN);break;
+		}
+        ai_delay_ms(100);
+        ai_brush_color = AI_RED;
+        ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32");	  
+		ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32"); 	
+		ai_lcd_show_str(10, 80, 240, 24, 24, (u8 *)"LTDC LCD TEST");
+		ai_lcd_show_str(10, 110, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
+ 		ai_lcd_show_str(10, 130, 240, 16, 16, lcd_id);     //显示LCD ID	      					 
+		ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/20");	      					 
+	    x++;
+		if(x==12)x=0;
+		
+        AI_DS0 = !AI_DS0;
+        printf("%s\r\n", lcd_id);
+		ai_delay_ms(1000);
+        
     }
 }
 

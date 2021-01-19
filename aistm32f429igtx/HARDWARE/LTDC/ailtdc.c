@@ -64,7 +64,7 @@ ai_ltdc_dev_t ai_ltdc_dev;
 *      Others: None
 ********************************************************************************
 */
-static void ai_ltdc_set_disp_dir(u8 direction)
+void ai_ltdc_set_disp_dir(u8 direction)
 {
     ai_ltdc_dev.dir = direction;
     
@@ -110,6 +110,151 @@ void ai_ltdc_draw_point(u16 x, u16 y, u32 color)
     *(u16 *)((u32)ai_ltdc_lcd_fbp[ai_ltdc_dev.active_layer] + offset) = color;
 #endif
 }
+
+/*
+********************************************************************************
+*    Function: ai_ltdc_read_point
+* Description: 读取LCD屏幕上的一个点
+*       Input:     x - 待读取点的横坐标
+*                  y - 待读取点的纵坐标
+*      Output: None
+*      Return: 32bit的颜色值，仅有低24bit有效
+*      Others: None
+********************************************************************************
+*/
+u32 ai_ltdc_read_point(u16 x, u16 y)
+{
+    u32 offset = 0;
+    
+    if (ai_ltdc_dev.dir) {
+        // 横屏
+        offset = ai_ltdc_dev.pixel_size * (ai_ltdc_dev.panel_width * y + x);
+    } else {
+        // 竖屏
+        offset = ai_ltdc_dev.pixel_size * (ai_ltdc_dev.panel_width
+                                           * (ai_ltdc_dev.panel_height - x - 1)
+                                           + y);
+    }
+    
+#if AI_LCD_PIXEL_FMT == AI_LCD_PIXEL_FMT_ARGB8888
+    || AI_LCD_PIXEL_FMT == AI_LCD_PIXEL_FMT_RGB888
+    return *(u32 *)((u32)ai_ltdc_lcd_fbp[ai_ltdc_dev.active_layer] + offset);
+#else
+    return *(u16 *)((u32)ai_ltdc_lcd_fbp[ai_ltdc_dev.active_layer] + offset);
+#endif
+}
+
+/*
+********************************************************************************
+*    Function: ai_ltdc_fill
+* Description: LTDC填充矩形,DMA2D填充
+*              (sx,sy),(ex,ey)构成填充矩形对角坐标，
+*              区域大小为:(ex - sx + 1) * (ey - sy + 1)   
+*              注意:sx,ex,不能大于lcddev.width-1;sy,ey,不能大于lcddev.height-1
+*       Input: sx, sy - 要填充的矩形区域的左上角横、纵坐标
+*              ex, ey - 要填充的矩形区域的右下角横、纵坐标
+*              color  - 填充使用的颜色值
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_ltdc_fill(u16 sx, u16 sy, u16 ex, u16 ey, u32 color)
+{
+    // 以LCD面板为基准的坐标系,不随横竖屏变化而变化
+    u16 psx, psy, pex, pey;
+    u16 line_offset = 0;
+    u32 timeout = 0;
+    u32 addr;
+    
+    if (ai_ltdc_dev.dir) {    // 横屏
+        psx = sx;
+        psy = sy;
+        pex = ex;
+        pey = ey;
+    } else{
+        psx = sy;
+        psy = ai_ltdc_dev.panel_height - ex -1;
+        pex = ey;
+        pey = ai_ltdc_dev.panel_width - sx - 1;
+    }
+    line_offset = ai_ltdc_dev.panel_width - (pex - psx + 1);
+    
+    addr = (u32)ai_ltdc_lcd_fbp[ai_ltdc_dev.active_layer]
+            + ai_ltdc_dev.pixel_size * (ai_ltdc_dev.panel_width * psy + psx);
+    RCC->AHB1ENR |= 0x1 << 23;
+    DMA2D->CR &= ~0x1;
+    DMA2D->CR |= (u32)0x3 << 16;         // 寄存器到存储器模式
+    DMA2D->OPFCCR = AI_LCD_PIXEL_FMT;    // 输出PFC，颜色模式控制
+    DMA2D->OOR = line_offset;
+    DMA2D->OMAR = addr;
+    DMA2D->NLR = ((u32)(pex - psx + 1) << 16) | (u32)(pey - psy + 1);
+    DMA2D->OCOLR = color;
+    DMA2D->CR |= 0x1;
+    while ((DMA2D->ISR & (0x1 << 1)) == 0) {    // 等待传输完成
+        timeout++;
+        if (timeout > 0x1ffff)
+            break;
+    }
+    DMA2D->IFCR |= (0x1 << 1);
+}
+
+/*
+********************************************************************************
+*    Function: ai_ltdc_color_fill
+* Description: 在指定区域内填充指定颜色块,DMA2D填充
+*              此函数仅支持u16,RGB565格式的颜色数组填充.
+*              (sx,sy),(ex,ey)构成填充矩形对角坐标，
+*              区域大小为:(ex - sx + 1) * (ey - sy + 1)   
+*              注意:sx,ex,不能大于lcddev.width-1;sy,ey,不能大于lcddev.height-1
+*       Input: sx, sy - 要填充的矩形区域的左上角横、纵坐标
+*              ex, ey - 要填充的矩形区域的右下角横、纵坐标
+*              color  - 要填充的颜色数组首地址
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_ltdc_color_fill(u16 sx, u16 sy, u16 ex, u16 ey, u16 *color)
+{
+    // 以LCD面板为基准的坐标系,不随横竖屏变化而变化
+    u16 psx, psy, pex, pey;
+    u16 line_offset = 0;
+    u32 timeout = 0;
+    u32 addr;
+    
+    if (ai_ltdc_dev.dir) {    // 横屏
+        psx = sx;
+        psy = sy;
+        pex = ex;
+        pey = ey;
+    } else{
+        psx = sy;
+        psy = ai_ltdc_dev.panel_height - ex -1;
+        pex = ey;
+        pey = ai_ltdc_dev.panel_height - sx - 1;
+    }
+    line_offset = ai_ltdc_dev.panel_width - (pex - psx + 1);
+    
+    addr = (u32)ai_ltdc_lcd_fbp[ai_ltdc_dev.active_layer]
+            + ai_ltdc_dev.pixel_size * (ai_ltdc_dev.panel_width * psy + psx);
+    RCC->AHB1ENR |= 0x1 << 23;
+    DMA2D->CR &= ~0x1;
+    DMA2D->CR &= ~((u32)0x3 << 16);      // 存储器到存储器模式
+    DMA2D->FGPFCCR = AI_LCD_PIXEL_FMT;    // 输出PFC，颜色模式控制
+    DMA2D->FGOR = 0;                     // 前景层行偏移为0
+    DMA2D->OOR = line_offset;
+    DMA2D->FGMAR = (u32)color;           // 前景层图像所用数据的地址
+    DMA2D->OMAR = addr;
+    DMA2D->NLR = ((u32)(pex - psx + 1) << 16) | (u32)(pey - psy + 1);
+    DMA2D->CR |= 0x1;
+    while ((DMA2D->ISR & (0x1 << 1)) == 0) {    // 等待传输完成
+        timeout++;
+        if (timeout > 0x1ffff)
+            break;
+    }
+    DMA2D->IFCR |= (0x1 << 1);
+}
     
 /*
 ********************************************************************************
@@ -123,7 +268,7 @@ void ai_ltdc_draw_point(u16 x, u16 y, u32 color)
 *      Others: None
 ********************************************************************************
 */
-static u16 ai_ltdc_read_panel_id(void)
+u16 ai_ltdc_read_panel_id(void)
 {
     u8 id = 0;
     u16 ret = 0;
@@ -153,7 +298,7 @@ static u16 ai_ltdc_read_panel_id(void)
         ret = AI_LCD_INCH8_1024_600;
         break;
     default:
-        ret = 0;
+        ret = AI_LCD_TFT_MCU;
     };
     
     return ret;
@@ -181,7 +326,7 @@ static int ai_ltdc_set_pllsai_clk(u32 n, u32 r, u32 div)
     int ret = 0;
     u16 retry = 0;
     
-    if ((r < 2 || r > 7) || (n < 2 || n > 15) || div > 3)
+    if ((r < 2 || r > 7) || (n < 50 || n > 432) || div > 3)
         return -1;
     
     RCC->CR &= ~(0x1 << 28);    // 设置前先关闭PLL
@@ -374,7 +519,7 @@ void ai_ltdc_set_layer_window(u8 layerx, u16 sx, u16 sy, u16 width, u16 height)
         LTDC_Layer2->CFBLNR = height;
     }
     
-    ai_ltdc_layer_switch(layerx, 1);
+    ai_ltdc_layer_switch(layerx, AI_LTDC_LAYER_ON);
 }
     
 /*
@@ -405,7 +550,7 @@ void ai_ltdc_select_layer(u8 num)
 */
 void ai_ltdc_clear(u32 color)
 {
-
+    ai_ltdc_fill(0, 0, ai_ltdc_dev.width - 1, ai_ltdc_dev.height - 1, color);
 }
 
 /*
@@ -424,6 +569,7 @@ int ai_ltdc_init(void)
     u16 lcd_id = 0;
     u32 tmp_reg = 0;
     
+    lcd_id = ai_ltdc_read_panel_id();
     RCC->AHB1ENR |= 0x1 << 8 | 0x1 << 7 | 0x1 << 6 | 0x1 << 5 | 0x1 << 1;
     RCC->APB2ENR |= 0x1 << 26;
     
@@ -438,7 +584,7 @@ int ai_ltdc_init(void)
     ai_gpio_set(GPIOI, PIN10 | PIN9 | 0xf << 4 | 0x7, GPIO_MODE_AF, 
                 GPIO_OTYPE_PP, GPIO_SPEED_100M, GPIO_PUPD_PU);
     
-    ai_gpio_set_af(GPIOF, 5, 14);     // GPIOF
+    ai_gpio_set_af(GPIOF, 10, 14);    // GPIOF
     ai_gpio_set_af(GPIOG, 6, 14);     // GPIOG
     ai_gpio_set_af(GPIOG, 7, 14);
     ai_gpio_set_af(GPIOG, 11, 14);    
@@ -459,7 +605,6 @@ int ai_ltdc_init(void)
     ai_gpio_set_af(GPIOI, 9, 14);
     ai_gpio_set_af(GPIOI, 10, 14);
     
-    lcd_id = ai_ltdc_read_panel_id();
     if (lcd_id == AI_LCD_INCH43_480_272) {
         ai_ltdc_dev.panel_width = 480;
         ai_ltdc_dev.panel_height = 272;
@@ -508,7 +653,7 @@ int ai_ltdc_init(void)
     LTDC->BPCR = tmp_reg;
     tmp_reg = (ai_ltdc_dev.hsw + ai_ltdc_dev.hbp
                + ai_ltdc_dev.panel_width - 1) << 16
-              | (ai_ltdc_dev.vsw + ai_ltdc_dev.hbp
+              | (ai_ltdc_dev.vsw + ai_ltdc_dev.vbp
                  + ai_ltdc_dev.panel_height - 1);
     LTDC->AWCR = tmp_reg;
     tmp_reg = (ai_ltdc_dev.hsw + ai_ltdc_dev.hbp + ai_ltdc_dev.panel_width
@@ -531,13 +676,13 @@ int ai_ltdc_init(void)
 #endif
 
     ai_ltdc_set_layer_param(0, (u32)ai_ltdc_lcd_fbp[0], AI_LCD_PIXEL_FMT,
-                             255, 0x000000, 0, 6, 7);
+                             255, 0,0x000000, 6, 7);
     // 层窗口配置,以LCD面板坐标系为基准,不要随便修改!
     ai_ltdc_set_layer_window(0, 0, 0, ai_ltdc_dev.panel_width,
                              ai_ltdc_dev.panel_height);
     
-    ai_ltdc_dev.width = ai_ltdc_dev.panel_width;
-    ai_ltdc_dev.height = ai_ltdc_dev.panel_height;
+    ai_lcd_dev.width = ai_ltdc_dev.panel_width;
+    ai_lcd_dev.height = ai_ltdc_dev.panel_height;
     ai_ltdc_select_layer(0);
     ai_lcd_backlight_on();
     ai_ltdc_clear(0xffffffff);
