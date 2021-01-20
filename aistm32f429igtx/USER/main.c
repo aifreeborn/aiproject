@@ -99,7 +99,7 @@ int main(void)
         case 11:
             ai_lcd_clear(AI_BROWN);break;
 		}
-        ai_delay_ms(100);
+        
         ai_brush_color = AI_RED;
         ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32");	  
 		ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32"); 	
@@ -108,7 +108,8 @@ int main(void)
  		ai_lcd_show_str(10, 130, 240, 16, 16, lcd_id);     //œ‘ æLCD ID	      					 
 		ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/20");	      					 
 	    x++;
-		if(x==12)x=0;
+		if (x == 12)
+            x = 0;
 		
         AI_DS0 = !AI_DS0;
         printf("%s\r\n", lcd_id);

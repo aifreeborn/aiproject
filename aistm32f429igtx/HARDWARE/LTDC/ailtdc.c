@@ -176,7 +176,7 @@ void ai_ltdc_fill(u16 sx, u16 sy, u16 ex, u16 ey, u32 color)
         psx = sy;
         psy = ai_ltdc_dev.panel_height - ex -1;
         pex = ey;
-        pey = ai_ltdc_dev.panel_width - sx - 1;
+        pey = ai_ltdc_dev.panel_height - sx - 1;
     }
     line_offset = ai_ltdc_dev.panel_width - (pex - psx + 1);
     
@@ -193,7 +193,7 @@ void ai_ltdc_fill(u16 sx, u16 sy, u16 ex, u16 ey, u32 color)
     DMA2D->CR |= 0x1;
     while ((DMA2D->ISR & (0x1 << 1)) == 0) {    // 等待传输完成
         timeout++;
-        if (timeout > 0x1ffff)
+        if (timeout > 0x1fffff)
             break;
     }
     DMA2D->IFCR |= (0x1 << 1);
@@ -250,7 +250,7 @@ void ai_ltdc_color_fill(u16 sx, u16 sy, u16 ex, u16 ey, u16 *color)
     DMA2D->CR |= 0x1;
     while ((DMA2D->ISR & (0x1 << 1)) == 0) {    // 等待传输完成
         timeout++;
-        if (timeout > 0x1ffff)
+        if (timeout > 0x1fffff)
             break;
     }
     DMA2D->IFCR |= (0x1 << 1);
