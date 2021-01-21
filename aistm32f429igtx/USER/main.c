@@ -23,6 +23,7 @@
 #include "aiwm9825g6kh.h"
 #include "ailtdc.h"
 #include "ailcd.h"
+#include "usmart.h"
 
 /*
 ********************************************************************************
@@ -59,6 +60,7 @@ int main(void)
 	
     /* 外设初始化 */
 	ai_uart_init(90, 115200);
+    usmart_dev.init(90);
     ai_led_init();
     ai_key_init();
     ai_wm9825g6kh_init();
