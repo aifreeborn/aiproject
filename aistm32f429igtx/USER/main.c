@@ -24,6 +24,7 @@
 #include "ailtdc.h"
 #include "ailcd.h"
 #include "usmart.h"
+#include "airtc.h"
 
 /*
 ********************************************************************************
@@ -53,7 +54,9 @@ void ai_test_sdram(void);
 int main(void)
 {
 	u16 x = 0;
-    u8 lcd_id[12];
+    u8 lcd_buf[40];
+    u8 hour, min, sec, am_pm;
+    u8 year, month, day, week;
     
     ai_sys_clock_init(360, 25, 2, 8);    // 设置时钟180MHz
     ai_delay_init(180);
@@ -65,57 +68,39 @@ int main(void)
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
+    ai_rtc_init();
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
     ai_led_on(AI_LED_DS0);
     ai_led_off(AI_LED_DS1);
+    ai_rtc_wakeup(4, 0);        // 1s中断一次
 	ai_brush_color = AI_RED;
-    sprintf((char*)lcd_id, "LCD ID:%04X", ai_lcd_dev.id);
+
+    sprintf((char*)lcd_buf, "LCD ID:%04X", ai_lcd_dev.id);
+    ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32");
+    ai_lcd_show_str(10, 80, 240, 24, 24, (u8 *)"LTDC LCD TEST");
+    ai_lcd_show_str(10, 110, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
+    ai_lcd_show_str(10, 130, 240, 16, 16, lcd_buf);     //显示LCD ID
+    ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/24");
     
     /* main loop */
     while (1) {
-        switch (x) {
-        case 0:
-            ai_lcd_clear(AI_WHITE);break;
-        case 1:
-            ai_lcd_clear(AI_BLACK);break;
-        case 2:
-            ai_lcd_clear(AI_BLUE);break;
-        case 3:
-            ai_lcd_clear(AI_RED);break;
-        case 4:
-            ai_lcd_clear(AI_MAGENTA);break;
-        case 5:
-            ai_lcd_clear(AI_GREEN);break;
-        case 6:
-            ai_lcd_clear(AI_CYAN);break;
-        case 7:
-            ai_lcd_clear(AI_YELLOW);break;
-        case 8:
-            ai_lcd_clear(AI_BRRED);break;
-        case 9:
-            ai_lcd_clear(AI_GRAY);break;
-        case 10:
-            ai_lcd_clear(AI_LGRAY);break;
-        case 11:
-            ai_lcd_clear(AI_BROWN);break;
-		}
-        
-        ai_brush_color = AI_RED;
-        ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32");	  
-		ai_lcd_show_str(10, 40, 240, 32, 32, (u8 *)"Apollo STM32"); 	
-		ai_lcd_show_str(10, 80, 240, 24, 24, (u8 *)"LTDC LCD TEST");
-		ai_lcd_show_str(10, 110, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
- 		ai_lcd_show_str(10, 130, 240, 16, 16, lcd_id);     //显示LCD ID	      					 
-		ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/20");	      					 
-	    x++;
-		if (x == 12)
-            x = 0;
+        x++;
+        if ((x % 10) == 0) {
+            ai_rtc_get_time(&hour, &min, &sec, &am_pm);
+            sprintf((char *)lcd_buf, "Time:%02d:%02d:%02d", hour, min, sec);
+            ai_lcd_show_str(30, 200, 210, 16, 16, lcd_buf);
+            ai_rtc_get_date(&year, &month, &day, &week);
+			sprintf((char*)lcd_buf, "Date:20%02d-%02d-%02d", year, month, day); 
+			ai_lcd_show_str(30, 220, 210, 16, 16, lcd_buf);	
+			sprintf((char*)lcd_buf, "Week:%d", week); 
+			ai_lcd_show_str(30, 240, 210, 16, 16, lcd_buf);
+        }
 		
-        AI_DS0 = !AI_DS0;
-        printf("%s\r\n", lcd_id);
-		ai_delay_ms(1000);
+        if ((x % 20) == 0)
+            AI_DS0 = !AI_DS0;
+		ai_delay_ms(10);
         
     }
 }
