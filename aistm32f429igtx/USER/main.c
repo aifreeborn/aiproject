@@ -25,6 +25,7 @@
 #include "ailcd.h"
 #include "usmart.h"
 #include "airtc.h"
+#include "airng.h"
 
 /*
 ********************************************************************************
@@ -57,6 +58,8 @@ int main(void)
     u8 lcd_buf[40];
     u8 hour, min, sec, am_pm;
     u8 year, month, day, week;
+    u32 random = 0;
+    u8 key = AI_KEY_ALL_UP;
     
     ai_sys_clock_init(360, 25, 2, 8);    // …Ë÷√ ±÷”180MHz
     ai_delay_init(180);
@@ -84,6 +87,12 @@ int main(void)
     ai_lcd_show_str(10, 130, 240, 16, 16, lcd_buf);     //œ‘ æLCD ID
     ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/24");
     
+    while (ai_rng_init() != 0) {
+        ai_lcd_show_str(10, 300, 240, 32, 32, (u8 *)"RNG Error!");
+        ai_delay_ms(200);
+        ai_lcd_show_str(10, 340, 240, 32, 32, (u8 *)"RNG Trying...");
+    }
+    
     /* main loop */
     while (1) {
         x++;
@@ -96,6 +105,13 @@ int main(void)
 			ai_lcd_show_str(30, 220, 210, 16, 16, lcd_buf);	
 			sprintf((char*)lcd_buf, "Week:%d", week); 
 			ai_lcd_show_str(30, 240, 210, 16, 16, lcd_buf);
+        }
+        
+        key = ai_key_scan(0);
+        if (key == AI_KEY0_DOWN) {
+            random = ai_rng_get_random_num();
+            ai_lcd_show_str(30, 380, 200, 16, 16, "Random Num:");
+            ai_lcd_show_num(30 + 8 * 11, 380, random, 10, 16);
         }
 		
         if ((x % 20) == 0)

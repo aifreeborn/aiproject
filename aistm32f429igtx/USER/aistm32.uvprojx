@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -478,6 +478,11 @@
               <FileName>airtc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\RTC\airtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>airng.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\RNG\airng.c</FilePath>
             </File>
           </Files>
         </Group>
