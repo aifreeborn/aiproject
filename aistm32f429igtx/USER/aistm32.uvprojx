@@ -450,11 +450,6 @@
               <FilePath>..\HARDWARE\LTDC\ailcd.c</FilePath>
             </File>
             <File>
-              <FileName>aiwkup.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\WKUP\aiwkup.c</FilePath>
-            </File>
-            <File>
               <FileName>aiadc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\ADC\aiadc.c</FilePath>
