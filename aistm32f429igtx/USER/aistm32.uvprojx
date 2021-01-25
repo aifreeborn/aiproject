@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -435,31 +435,6 @@
               <FilePath>..\HARDWARE\KEY\aikey.c</FilePath>
             </File>
             <File>
-              <FileName>aiexti.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\EXTI\aiexti.c</FilePath>
-            </File>
-            <File>
-              <FileName>aiiwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\IWDG\aiiwdg.c</FilePath>
-            </File>
-            <File>
-              <FileName>aiwwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\WWDG\aiwwdg.c</FilePath>
-            </File>
-            <File>
-              <FileName>aitimer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\TIMER\aitimer.c</FilePath>
-            </File>
-            <File>
-              <FileName>aitouchpad.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\TOUCHPAD\aitouchpad.c</FilePath>
-            </File>
-            <File>
               <FileName>aiwm9825g6kh.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\SDRAM\aiwm9825g6kh.c</FilePath>
@@ -475,34 +450,19 @@
               <FilePath>..\HARDWARE\LTDC\ailcd.c</FilePath>
             </File>
             <File>
-              <FileName>airtc.c</FileName>
+              <FileName>aiwkup.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\RTC\airtc.c</FilePath>
+              <FilePath>..\HARDWARE\WKUP\aiwkup.c</FilePath>
             </File>
             <File>
-              <FileName>airng.c</FileName>
+              <FileName>aiadc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\RNG\airng.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>USMART</GroupName>
-          <Files>
-            <File>
-              <FileName>usmart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USMART\usmart.c</FilePath>
+              <FilePath>..\HARDWARE\ADC\aiadc.c</FilePath>
             </File>
             <File>
-              <FileName>usmart_config.c</FileName>
+              <FileName>aidac.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\USMART\usmart_config.c</FilePath>
-            </File>
-            <File>
-              <FileName>usmart_str.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USMART\usmart_str.c</FilePath>
+              <FilePath>..\HARDWARE\DAC\aidac.c</FilePath>
             </File>
           </Files>
         </Group>
