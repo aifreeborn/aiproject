@@ -20,6 +20,7 @@
 #include "ailcd.h"
 #include "aiadc.h"
 #include "aidac.h"
+#include "aitimer.h"
 
 
 /*
@@ -47,7 +48,7 @@ int main(void)
     ai_wm9825g6kh_init();
     ai_lcd_init();
     ai_adc_init();
-    ai_dac_init();
+    ai_timer9_ch2_pwm_init(255, 1);
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -69,30 +70,30 @@ int main(void)
     ai_lcd_show_str(30, 240, 200, 16, 16, "KEY0:+  KEY1:-");
     ai_lcd_show_str(30, 260, 200, 16, 16, "DAC VAL:");
     ai_lcd_show_str(30, 280, 200, 16, 16, "DAC VOL:0.000V");
-    ai_dac_set_vol(dac_val);
+    ai_timer9_pwm_dac_set(0);
      
     /* main loop */
     while (1) {
         time++;
         key = ai_key_scan(0);
         if (key == AI_KEY0_DOWN) {
-            if (dac_val < 3300) {
-                dac_val += 200;
-                if (dac_val >= 3300)
-                    dac_val = 3300;
+            if (dac_val < 250) {
+                dac_val += 10;
+                if (dac_val >= 250)
+                    dac_val = 250;
             }
-            ai_dac_set_vol(dac_val);
+            ai_timer9_pwm_dac_set(dac_val);
         } else if (key == AI_KEY1_DOWN) {
-            if (dac_val > 200) {
-                dac_val -= 200;
+            if (dac_val > 10) {
+                dac_val -= 10;
             }
-            ai_dac_set_vol(dac_val);
+            ai_timer9_pwm_dac_set(dac_val);
         }
         
         if (time == 10 || key == AI_KEY0_DOWN || key == AI_KEY1_DOWN) {
-            dac_tmp = ai_dac_get_vol();
+            dac_tmp = ai_timer9_pwm_dac_get();
             ai_lcd_show_full_num(94, 260, dac_tmp, 4, 16, 0);
-            tmp = (float)dac_tmp * (3.3 / 4095);
+            tmp = (float)dac_tmp * (3.3 / 255);
             dac_tmp = tmp;
             ai_lcd_show_full_num(94, 280, dac_tmp, 1, 16, 0);
             tmp -= dac_tmp;

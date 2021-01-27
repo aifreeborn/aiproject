@@ -183,3 +183,55 @@ void TIM5_IRQHandler(void)
     
     TIM5->SR = 0;
 }
+
+/*
+********************************************************************************
+*    Function: ai_timer9_ch2_pwm_init
+* Description: TIM9 CH2 PWM输出初始化
+*       Input: arr       - 要装载到实际自动重载寄存器的值
+*              prescaler - 预分频器值，计数器时钟频率等于
+*      Output: None
+*      Return: void
+*      Others: 用于实现PWM ADC功能,使用PA3引脚输出模拟信号
+********************************************************************************
+*/
+void ai_timer9_ch2_pwm_init(u16 arr, u16 prescaler)
+{
+    RCC->APB2ENR |= 0x1 << 16;        // TIM9 clock enabled
+    RCC->AHB1ENR |= 0x1;
+    ai_gpio_set(GPIOA, PIN3, GPIO_MODE_AF,
+                GPIO_OTYPE_PP, GPIO_SPEED_100M, GPIO_PUPD_PU);
+    ai_gpio_set_af(GPIOA, 3, 3);
+    
+    TIM9->ARR = arr;
+    TIM9->PSC = prescaler;
+    TIM9->CCMR1 &= ~((0x7 << 12) | (0x1 << 11));
+    TIM9->CCMR1 |= 0x6 << 12 | 0x1 << 11;
+    TIM9->CCER |= 0x1 << 4;                         // OC2输出使能
+    TIM9->CR1 |= 0x1 << 7;                          // TIMx_ARR 寄存器进行缓冲
+    TIM9->CR1 |= 0x1;
+}
+
+/*
+********************************************************************************
+*    Function: ai_timer9_pwm_dac_set
+* Description: 设置输出电压
+*       Input: vol - 0~330,代表0~3.3V
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_timer9_pwm_dac_set(u16 value)
+{
+    double tmp = value;
+    
+    tmp /= 100;
+    tmp = tmp * 255 / 3.3;
+    TIM9->CCR2 = tmp;
+}
+
+u16 ai_timer9_pwm_dac_get(void)
+{
+    return TIM9->CCR2;
+}

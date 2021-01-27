@@ -29,6 +29,9 @@ void ai_timer3_interrupt_init(u16 arr, u16 prescaler);
 void ai_timer3_pwm_init(u16 arr, u16 prescaler);
 void ai_timer3_set_pwm(u32 val);
 void ai_timer5_ch1_capture_init(u32 arr, u16 prescaler);
+void ai_timer9_ch2_pwm_init(u16 arr, u16 prescaler);
+void ai_timer9_pwm_dac_set(u16 value);
+u16 ai_timer9_pwm_dac_get(void);
 
 #ifdef __cplusplus
 }
