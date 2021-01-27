@@ -18,10 +18,18 @@
 #include "aiwm9825g6kh.h"
 #include "ailtdc.h"
 #include "ailcd.h"
-#include "aiadc.h"
-#include "aidac.h"
-#include "aitimer.h"
+#include "aidma.h"
 
+/*
+********************************************************************************
+*                        Private variables、define
+********************************************************************************
+*/
+// 发送数据长度,最好等于sizeof(ai_text_to_send)+2的整数倍.
+#define SEND_BUF_SIZE 7800
+
+const u8 ai_text_to_send[] = {"ALIENTEK Apollo STM32F4 DMA 串口实验"};
+u8 ai_send_buf[SEND_BUF_SIZE]; // 发送数据缓冲区
 
 /*
 ********************************************************************************
@@ -31,24 +39,22 @@
 int main(void)
 {
     u8 lcd_buf[40];
-    u16 adc_val, dac_val = 0, dac_tmp;
-    float tmp;
-    int temperature;
     u8 key = AI_KEY_ALL_UP;
-    u8 time = 0;
+    int i;
+    u8 t = 0, tmp, mask = 0;
+    float pro = 0;    // 进度
     
     ai_sys_clock_init(360, 25, 2, 8);    // 设置时钟180MHz
     ai_delay_init(180);
 	
     /* 外设初始化 */
 	ai_uart_init(90, 115200);
-    // usmart_dev.init(90);
     ai_led_init();
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
-    ai_adc_init();
-    ai_timer9_ch2_pwm_init(255, 1);
+    ai_dma_config(DMA2_Stream7, 4, (u32)&USART1->DR,
+                  (u32)ai_send_buf, SEND_BUF_SIZE);
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -61,73 +67,61 @@ int main(void)
     ai_lcd_show_str(10, 80, 240, 24, 24, (u8 *)"LTDC LCD TEST");
     ai_lcd_show_str(10, 110, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
     ai_lcd_show_str(10, 130, 240, 16, 16, lcd_buf);     //显示LCD ID
-    ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/24");
-    
+    ai_lcd_show_str(10, 150, 240, 12, 12, (u8 *)"2021/01/27");
+    ai_lcd_show_str(10, 170, 240, 16, 16, "KEY0:Start");
     ai_brush_color = AI_BLUE;
-    ai_lcd_show_str(30, 180, 200, 16, 16, "ADC1_CH5_VAL:");
-    ai_lcd_show_str(30, 200, 200, 16, 16, "ADC1_CH5_VOL:0.000V");
-    ai_lcd_show_str(30, 220, 200, 16, 16, "TEMPERATE: 00.00C");
-    ai_lcd_show_str(30, 240, 200, 16, 16, "KEY0:+  KEY1:-");
-    ai_lcd_show_str(30, 260, 200, 16, 16, "DAC VAL:");
-    ai_lcd_show_str(30, 280, 200, 16, 16, "DAC VOL:0.000V");
-    ai_timer9_pwm_dac_set(0);
+    
+    tmp = sizeof(ai_text_to_send);
+    for (i = 0; i < SEND_BUF_SIZE; i++) {
+        if (t >= tmp) {
+            // 加入换行符
+            if (mask) {
+                ai_send_buf[i] = 0x0a;
+                t = 0;
+            } else {
+                ai_send_buf[i] = 0x0d;
+                mask++;
+            }
+        } else {
+            mask = 0;
+            ai_send_buf[i] = ai_text_to_send[t];
+            t++;
+        }
+    }
+    i = 0;
      
     /* main loop */
     while (1) {
-        time++;
         key = ai_key_scan(0);
         if (key == AI_KEY0_DOWN) {
-            if (dac_val < 250) {
-                dac_val += 10;
-                if (dac_val >= 250)
-                    dac_val = 250;
-            }
-            ai_timer9_pwm_dac_set(dac_val);
-        } else if (key == AI_KEY1_DOWN) {
-            if (dac_val > 10) {
-                dac_val -= 10;
-            }
-            ai_timer9_pwm_dac_set(dac_val);
-        }
-        
-        if (time == 10 || key == AI_KEY0_DOWN || key == AI_KEY1_DOWN) {
-            dac_tmp = ai_timer9_pwm_dac_get();
-            ai_lcd_show_full_num(94, 260, dac_tmp, 4, 16, 0);
-            tmp = (float)dac_tmp * (3.3 / 255);
-            dac_tmp = tmp;
-            ai_lcd_show_full_num(94, 280, dac_tmp, 1, 16, 0);
-            tmp -= dac_tmp;
-            tmp *= 1000;
-            ai_lcd_show_full_num(110, 280, tmp, 3, 16, 0X80);
+            printf("\r\nDMA DATA:\r\n");
+            ai_lcd_show_str(30, 190, 200, 16, 16, "Start Transimit....");
+            // 显示百分号
+            ai_lcd_show_str(30, 210, 200, 16, 16, "   %");
+            // 使能串口1的DMA发送
+            USART1->CR3 = 0x1 << 7;
+            ai_dma_enable(DMA2_Stream7, SEND_BUF_SIZE);
             
-            // ADC获取模拟数值
-            adc_val = ai_adc_get_average_val(5, 20);
-            sprintf((char *)lcd_buf, "%d", adc_val);
-            printf("%s\r\n", lcd_buf);
-            ai_lcd_show_full_num(134, 180, adc_val, 4, 16, 0);
-            tmp = (float)adc_val * (3.3 / 4095);
-            adc_val = tmp;
-            ai_lcd_show_full_num(134, 200, adc_val, 1, 16, 0);
-            tmp -= adc_val;
-            tmp *= 1000;
-            ai_lcd_show_full_num(150, 200, tmp, 3, 16, 0X80);
-            
-            AI_DS0 = !AI_DS0;
-            time = 0;
+            // 等待DMA传输完成，此时我们来做另外一些事，点灯
+            // 实际应用中，传输数据期间，可以执行另外的任务
+            while (1) {
+                if (DMA2->HISR & (0x1 << 27)) {    // 等待DMA2_Steam7传输完成
+                    DMA2->HIFCR |= 0x1 << 27;
+                    break;
+                }
+                pro = DMA2_Stream7->NDTR;
+                pro = 1 - pro / SEND_BUF_SIZE;
+                pro *= 100;
+                ai_lcd_show_num(30, 210, pro, 3, 16);
+            }
+            ai_lcd_show_num(30, 210, 100, 3, 16);    // 显示100%	
+            ai_lcd_show_str(30, 190, 200, 16, 16, "Transimit Finished!");
         }
-        
-        // 温度
-        temperature = ai_adc_get_temperature();
-        if (temperature < 0) {
-            temperature = -temperature;
-            ai_lcd_show_str(30 + 10 * 8, 220, 16, 16, 16, "-" );
-        } else {
-            ai_lcd_show_str(30 + 10 * 8, 220, 16, 16, 16, " " );
-        }
-        
-        ai_lcd_show_full_num(30 + 11 * 8, 220, temperature / 100, 2, 16, 0);
-        ai_lcd_show_full_num(30 + 14 * 8, 220, temperature % 100, 2, 16, 0X80);
-               
+        i++;
         ai_delay_ms(10);
+        if (i == 20) {
+            AI_DS0 = !AI_DS0;
+            i = 0;
+        }
     }
 }
