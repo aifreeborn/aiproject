@@ -18,14 +18,14 @@
 #include "aiwm9825g6kh.h"
 #include "ailtdc.h"
 #include "ailcd.h"
-#include "aiat24cxx.h"
+#include "aipcf8574.h"
 
 /*
 ********************************************************************************
 *                        Private variables、define
 ********************************************************************************
 */
-const u8 ai_text_buf[] = {"ALIENTEK Apollo STM32F429 IIC TEST2"};
+// const u8 ai_text_buf[] = {"ALIENTEK Apollo STM32F429 IIC TEST2"};
 
 /*
 ********************************************************************************
@@ -36,7 +36,7 @@ int main(void)
 {
     u16 timeout = 0;
     u8 key = AI_KEY_ALL_UP;
-    u8 data_tmp[sizeof(ai_text_buf)] = {0};
+    u8 beep_stat = 1;
     
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
@@ -48,7 +48,6 @@ int main(void)
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
-    ai_at24cxx_init();
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -57,36 +56,36 @@ int main(void)
     
 	ai_brush_color = AI_RED; 
     ai_lcd_show_str(10, 40, 240, 16, 16, (u8 *)"Apollo STM32");
-    ai_lcd_show_str(10, 60, 240, 16, 16, (u8 *)"IIC TEST");
+    ai_lcd_show_str(10, 60, 240, 16, 16, (u8 *)"PCF8574 TEST");
     ai_lcd_show_str(10, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
     ai_lcd_show_str(10, 100, 240, 16, 16, (u8 *)"2021/01/28");
-    ai_lcd_show_str(10, 120, 240, 16, 16, "KEY1:Write  KEY0:Read");
+    ai_lcd_show_str(10, 120, 240, 16, 16, "KEY0:BEEP ON/OFF");
+    ai_lcd_show_str(10, 140, 240, 16, 16, "EXIO:DS1 ON/OFF");
     
-    while (ai_at24cxx_check() != 0) {
-        ai_lcd_show_str(10, 140, 240, 16, 16, "24C02 Check Failed!");
+    while (ai_pcf8574_init() != 0) {
+        ai_lcd_show_str(10, 160, 240, 16, 16, "PCF8574 Check Failed!");
         ai_delay_ms(500);
-        ai_lcd_show_str(10, 140, 240, 16, 16, "Please Check!      ");
+        ai_lcd_show_str(10, 160, 240, 16, 16, "Please Check!        ");
         ai_delay_ms(500);
         AI_DS0 = !AI_DS0;
     }
-    ai_lcd_show_str(10, 140, 240, 16, 16, "24C02 Ready!");
+    ai_lcd_show_str(10, 180, 240, 16, 16, "PCF8574 Ready!");
     ai_brush_color = AI_BLUE;
     
     /* main loop */
     while (1) {
         key = ai_key_scan(0);
-        if (key == AI_KEY1_DOWN) {
-            ai_lcd_fill(0, 160, 500, 319, AI_WHITE);
-            ai_lcd_show_str(10, 160, 240, 16, 16, "Start Write 24C02....");
-            ai_at24cxx_write(0, (u8 *)ai_text_buf, sizeof(ai_text_buf));
-            ai_lcd_show_str(10, 160, 240, 16, 16, "24C02 Write Finished!");
-            // 提示传送完成
-        }
         if (key == AI_KEY0_DOWN) {
-            ai_lcd_show_str(10, 160, 240, 16, 16, "Start Read 24C02.... ");
-            ai_at24cxx_read(0, data_tmp, sizeof(ai_text_buf));
-            ai_lcd_show_str(10, 160, 240, 16, 16, "The Data Readed Is:  ");
-            ai_lcd_show_str(10, 180, 500, 16, 16, data_tmp); // 显示读到的字符串
+            beep_stat = !beep_stat;
+            ai_pcf8574_write_bit(AI_BEEP_IO, beep_stat);
+        }
+        
+        // PCF8574的中断低电平有效
+        if (AI_PCF8574_INT == 0) {
+            // 读取EXIO状态,同时清除PCF8574的中断输出(INT恢复高电平)
+            key = ai_pcf8574_read_bit(AI_EX_IO);
+            if (key == 0)
+                AI_DS1 = !AI_DS1;
         }
         
         timeout++;
