@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -450,9 +450,14 @@
               <FilePath>..\HARDWARE\LTDC\ailcd.c</FilePath>
             </File>
             <File>
-              <FileName>aidma.c</FileName>
+              <FileName>aii2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\DMA\aidma.c</FilePath>
+              <FilePath>..\HARDWARE\IIC\aii2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>aiat24cxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\AT24CXX\aiat24cxx.c</FilePath>
             </File>
           </Files>
         </Group>
