@@ -18,15 +18,14 @@
 #include "aiwm9825g6kh.h"
 #include "ailtdc.h"
 #include "ailcd.h"
-#include "aipcf8574.h"
-#include "aiap3216c.h"
+#include "aiw25qxx.h"
 
 /*
 ********************************************************************************
 *                        Private variables、define
 ********************************************************************************
 */
-// const u8 ai_text_buf[] = {"ALIENTEK Apollo STM32F429 IIC TEST2"};
+const u8 ai_text_buf[] = {"Apollo STM32F4 SPI TEST"};
 
 /*
 ********************************************************************************
@@ -35,10 +34,10 @@
 */
 int main(void)
 {
-    u16 timeout = 0, j;
+    u16 timeout = 0;
+    u32 flash_size = 32 * 1024 * 1024;
     u8 key = AI_KEY_ALL_UP;
-    u8 beep_stat = 1;
-    u16 ir, als, ps;
+    u8 data_tmp[sizeof(ai_text_buf)] = {0};
     
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
@@ -50,6 +49,7 @@ int main(void)
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
+    ai_w25qxx_init();
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -57,62 +57,41 @@ int main(void)
     ai_led_off(AI_LED_DS1);
     
 	ai_brush_color = AI_RED; 
-    ai_lcd_show_str(10, 40, 240, 16, 16, (u8 *)"Apollo STM32");
-    ai_lcd_show_str(10, 60, 240, 16, 16, (u8 *)"PCF8574 & AP3216 CTEST");
-    ai_lcd_show_str(10, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
-    ai_lcd_show_str(10, 100, 240, 16, 16, (u8 *)"2021/01/30");
-    ai_lcd_show_str(10, 120, 240, 16, 16, "KEY0:BEEP ON/OFF");
-    ai_lcd_show_str(10, 140, 240, 16, 16, "EXIO:DS1 ON/OFF");
-    
-    while (ai_pcf8574_init() != 0) {
-        ai_lcd_show_str(10, 160, 240, 16, 16, "PCF8574 Check Failed!");
+    ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32");
+    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"SPI FLASH TEST");
+    ai_lcd_show_str(30, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
+    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"2021/01/31");
+    ai_lcd_show_str(30, 120, 240, 16, 16, "KEY1:Write  KEY0:Read");
+    while (ai_w25qxx_read_id() != AI_W25Q256) {
+        ai_lcd_show_str(30, 140, 240, 16, 16, "W25Q256 Check Failed!");
         ai_delay_ms(500);
-        ai_lcd_show_str(10, 160, 240, 16, 16, "Please Check!        ");
+        ai_lcd_show_str(30, 140, 240, 16, 16, "Please Check!        ");
         ai_delay_ms(500);
         AI_DS0 = !AI_DS0;
     }
-    ai_lcd_show_str(10, 180, 240, 16, 16, "PCF8574 Ready!");
+    ai_lcd_show_str(30, 140, 240, 16, 16, "W25Q256 Ready!");
     ai_brush_color = AI_BLUE;
-    
-    while (ai_ap3216c_init() != 0) {
-        ai_lcd_show_str(10, 200, 240, 16, 16, "AP3216C Check Failed!");
-        ai_delay_ms(500);
-        ai_lcd_show_str(10, 200, 240, 16, 16, "Please Check!        ");
-        ai_delay_ms(500);
-        AI_DS1 = !AI_DS1;
-    }
-    ai_lcd_show_str(10, 200, 240, 16, 16, "AP3216C Ready!");
-    ai_lcd_show_str(10, 220, 240, 16, 16, " IR:");
-    ai_lcd_show_str(10, 240, 240, 16, 16, " PS:");
-    ai_lcd_show_str(10, 260, 240, 16, 16, "ALS:");
-    ai_brush_color = AI_GREEN;
     
     /* main loop */
     while (1) {
         key = ai_key_scan(0);
+        if (key == AI_KEY1_DOWN) {
+            ai_lcd_fill(0, 160, 239, 319, AI_WHITE);
+            ai_lcd_show_str(30, 160, 200, 16, 16, "Start Write W25Q256....");
+            // 从倒数第100个地址处开始,写入sizeof(ai_text_buf)长度的数据
+            ai_w25qxx_write((u8 *)ai_text_buf, flash_size - 100,
+                             sizeof(ai_text_buf));
+            ai_lcd_show_str(30, 160, 200, 16, 16, "W25Q256 Write Finished!");
+        }
+        
         if (key == AI_KEY0_DOWN) {
-            beep_stat = !beep_stat;
-            ai_pcf8574_write_bit(AI_BEEP_IO, beep_stat);
-        }
-        
-        // PCF8574的中断低电平有效
-        if (AI_PCF8574_INT == 0) {
-            // 读取EXIO状态,同时清除PCF8574的中断输出(INT恢复高电平)
-            key = ai_pcf8574_read_bit(AI_EX_IO);
-            if (key == 0)
-                AI_DS1 = !AI_DS1;
-        }
-        
-        if (j == 120) {
-            ai_ap3216c_read_data(&ir, &ps, &als);
-            ai_lcd_show_num(10 + 32, 220, ir, 5, 16);
-            ai_lcd_show_num(10 + 32, 240, ps, 5, 16);
-            ai_lcd_show_num(10 + 32, 260, als, 5, 16);
-            j = 0;
+            ai_lcd_show_str(30, 160, 200, 16, 16, "Start Read W25Q256.... ");
+            ai_w25qxx_read(data_tmp, flash_size - 100, sizeof(ai_text_buf));
+            ai_lcd_show_str(30, 160, 200, 16, 16, "The Data Readed Is:   ");
+            ai_lcd_show_str(30, 180, 200, 16, 16, data_tmp);
         }
         
         timeout++;
-        j++;
         ai_delay_ms(10);
         if (timeout == 20) {
             AI_DS0 = !AI_DS0;

@@ -408,8 +408,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\IIC\aii2c.c</PathWithFileName>
-      <FilenameWithoutPath>aii2c.c</FilenameWithoutPath>
+      <PathWithFileName>..\HARDWARE\SPI\aispi.c</PathWithFileName>
+      <FilenameWithoutPath>aispi.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -420,20 +420,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\PCF8574\aipcf8574.c</PathWithFileName>
-      <FilenameWithoutPath>aipcf8574.c</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>4</GroupNumber>
-      <FileNumber>14</FileNumber>
-      <FileType>1</FileType>
-      <tvExp>0</tvExp>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\AP3216C\aiap3216c.c</PathWithFileName>
-      <FilenameWithoutPath>aiap3216c.c</FilenameWithoutPath>
+      <PathWithFileName>..\HARDWARE\W25QXX\aiw25qxx.c</PathWithFileName>
+      <FilenameWithoutPath>aiw25qxx.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -447,7 +435,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>5</GroupNumber>
-      <FileNumber>15</FileNumber>
+      <FileNumber>14</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
