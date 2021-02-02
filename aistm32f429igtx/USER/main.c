@@ -19,6 +19,7 @@
 #include "ailtdc.h"
 #include "ailcd.h"
 #include "aiw25qxx.h"
+#include "aican.h"
 
 /*
 ********************************************************************************
@@ -34,10 +35,13 @@ const u8 ai_text_buf[] = {"Apollo STM32F4 SPI TEST"};
 */
 int main(void)
 {
+    u8 i = 0;
     u16 timeout = 0;
-    u32 flash_size = 32 * 1024 * 1024;
     u8 key = AI_KEY_ALL_UP;
-    u8 data_tmp[sizeof(ai_text_buf)] = {0};
+    u8 data_tmp[8] = {0};
+    u8 mode = 1;        // CAN工作模式;0,普通模式;1,环回模式
+    u8 cnt = 0;
+    int ret = 0;
     
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
@@ -50,6 +54,7 @@ int main(void)
     ai_wm9825g6kh_init();
     ai_lcd_init();
     ai_w25qxx_init();
+    ai_can1_mode_init(0, 8, 4, 5, 1);        // CAN初始化,波特率500Kbps
     ai_delay_ms(100);
      
     /* 设置外设的开始运行状态 */
@@ -57,38 +62,61 @@ int main(void)
     ai_led_off(AI_LED_DS1);
     
 	ai_brush_color = AI_RED; 
-    ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32");
-    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"SPI FLASH TEST");
+    ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32 F4");
+    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"CAN TEST");
     ai_lcd_show_str(30, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
-    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"2021/01/31");
-    ai_lcd_show_str(30, 120, 240, 16, 16, "KEY1:Write  KEY0:Read");
-    while (ai_w25qxx_read_id() != AI_W25Q256) {
-        ai_lcd_show_str(30, 140, 240, 16, 16, "W25Q256 Check Failed!");
-        ai_delay_ms(500);
-        ai_lcd_show_str(30, 140, 240, 16, 16, "Please Check!        ");
-        ai_delay_ms(500);
-        AI_DS0 = !AI_DS0;
-    }
-    ai_lcd_show_str(30, 140, 240, 16, 16, "W25Q256 Ready!");
+    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"2021/02/02");
+    ai_lcd_show_str(30, 120, 240, 16, 16, (u8 *)"LoopBack Mode");
+    ai_lcd_show_str(30, 140, 240, 16, 16, "KEY0:Send KEY1:Mode");
     ai_brush_color = AI_BLUE;
+    
+    ai_lcd_show_str(30, 160, 240, 16, 16, "Count:");
+    ai_lcd_show_str(30, 180, 240, 16, 16, "Send Data:");
+    ai_lcd_show_str(30, 240, 240, 16, 16, "Receive Data:");
     
     /* main loop */
     while (1) {
         key = ai_key_scan(0);
         if (key == AI_KEY1_DOWN) {
-            ai_lcd_fill(0, 160, 239, 319, AI_WHITE);
-            ai_lcd_show_str(30, 160, 200, 16, 16, "Start Write W25Q256....");
-            // 从倒数第100个地址处开始,写入sizeof(ai_text_buf)长度的数据
-            ai_w25qxx_write((u8 *)ai_text_buf, flash_size - 100,
-                             sizeof(ai_text_buf));
-            ai_lcd_show_str(30, 160, 200, 16, 16, "W25Q256 Write Finished!");
+            mode = !mode;
+            ai_can1_mode_init(0, 8, 4, 5, mode);
+            ai_brush_color = AI_RED;
+            if (mode == 0)
+                ai_lcd_show_str(30, 120, 240, 16, 16, "Nnormal Mode ");
+            else
+                ai_lcd_show_str(30, 120, 240, 16, 16, "LoopBack Mode");
+            ai_brush_color = AI_BLUE;
         }
         
         if (key == AI_KEY0_DOWN) {
-            ai_lcd_show_str(30, 160, 200, 16, 16, "Start Read W25Q256.... ");
-            ai_w25qxx_read(data_tmp, flash_size - 100, sizeof(ai_text_buf));
-            ai_lcd_show_str(30, 160, 200, 16, 16, "The Data Readed Is:   ");
-            ai_lcd_show_str(30, 180, 200, 16, 16, data_tmp);
+            for (i = 0; i < 8; i++) {
+                data_tmp[i] = cnt + i;
+                if (i < 4)
+                    ai_lcd_show_full_num(30 + i * 32, 200, data_tmp[i],
+                                         3, 16, 0x80);
+                else
+                    ai_lcd_show_full_num(30 + (i - 4) * 32, 220, data_tmp[i],
+                                         3, 16, 0x80);
+            }
+            
+            ret = ai_can1_send_msg(data_tmp, 8);
+            if (ret == -1)
+                ai_lcd_show_str(30 + 80, 180, 240, 16, 16, "Failed");
+            else
+                ai_lcd_show_str(30 + 80, 180, 240, 16, 16, "OK    ");
+        }
+        
+        ret = ai_can1_receive_msg(data_tmp);
+        if (ret) {
+            ai_lcd_fill(30, 260, 160, 310, AI_WHITE);
+            for (i = 0; i < ret; i++) {
+                if (i < 4)
+                    ai_lcd_show_full_num(30 + i * 32, 260, data_tmp[i],
+                                         3, 16, 0x80);
+                else
+                    ai_lcd_show_full_num(30 + (i - 4) * 32, 280, data_tmp[i],
+                                         3, 16, 0x80);
+            }
         }
         
         timeout++;
@@ -96,6 +124,8 @@ int main(void)
         if (timeout == 20) {
             AI_DS0 = !AI_DS0;
             timeout = 0;
+            cnt++;
+            ai_lcd_show_full_num(30 + 48, 160, cnt, 3, 16, 0x80);
         }
     }
 }
