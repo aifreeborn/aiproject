@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN;..\HARDWARE\TOUCHPANEL</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN;..\HARDWARE\TOUCHPANEL;..\HARDWARE\REMOTE</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -468,6 +468,11 @@
               <FileName>aispi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\SPI\aispi.c</FilePath>
+            </File>
+            <File>
+              <FileName>airemote.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\REMOTE\airemote.c</FilePath>
             </File>
           </Files>
         </Group>
