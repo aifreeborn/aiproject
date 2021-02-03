@@ -19,14 +19,31 @@
 #include "ailtdc.h"
 #include "ailcd.h"
 #include "aiw25qxx.h"
-#include "aican.h"
+#include "aitouch.h"
 
 /*
 ********************************************************************************
 *                        Private variables、define
 ********************************************************************************
 */
-const u8 ai_text_buf[] = {"Apollo STM32F4 SPI TEST"};
+// 10个触控点的颜色(电容触摸屏用)
+const u16 ai_point_color_tbl[10] = {
+    AI_RED, AI_GREEN, AI_BLUE, AI_BROWN, AI_GRED,
+    AI_BRED, AI_GBLUE, AI_LIGHTBLUE, AI_BRRED, AI_GRAY
+};
+
+/*
+********************************************************************************
+*                           FUNCTION PROTOTYPES
+********************************************************************************
+*/
+void ai_load_drow_dialog(void);
+void ai_gui_draw_hline(u16 x0, u16 y0, u16 len, u16 color);
+void ai_gui_fill_circle(u16 x0, u16 y0, u16 r, u16 color);
+u16 ai_abs(u16 a, u16 b);
+void ai_lcd_draw_bline(u16 x1, u16 y1, u16 x2, u16 y2, u8 size, u16 color);
+void ai_lcd_draw_bline(u16 x1, u16 y1, u16 x2, u16 y2, u8 size, u16 color);
+void ai_ctp_test(void);
 
 /*
 ********************************************************************************
@@ -35,14 +52,6 @@ const u8 ai_text_buf[] = {"Apollo STM32F4 SPI TEST"};
 */
 int main(void)
 {
-    u8 i = 0;
-    u16 timeout = 0;
-    u8 key = AI_KEY_ALL_UP;
-    u8 data_tmp[8] = {0};
-    u8 mode = 1;        // CAN工作模式;0,普通模式;1,环回模式
-    u8 cnt = 0;
-    int ret = 0;
-    
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
     ai_delay_init(180);
@@ -53,9 +62,8 @@ int main(void)
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
-    ai_w25qxx_init();
-    ai_can1_mode_init(0, 8, 4, 5, 1);        // CAN初始化,波特率500Kbps
     ai_delay_ms(100);
+    ai_tp_dev.init();
      
     /* 设置外设的开始运行状态 */
     ai_led_on(AI_LED_DS0);
@@ -63,69 +71,216 @@ int main(void)
     
 	ai_brush_color = AI_RED; 
     ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32 F4");
-    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"CAN TEST");
+    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"TOUCH TEST");
     ai_lcd_show_str(30, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
-    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"2021/02/02");
-    ai_lcd_show_str(30, 120, 240, 16, 16, (u8 *)"LoopBack Mode");
-    ai_lcd_show_str(30, 140, 240, 16, 16, "KEY0:Send KEY1:Mode");
+    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"2021/02/03");
+    
+    ai_delay_ms(1500);
+    ai_load_drow_dialog();
+    ai_ctp_test();
+}
+
+/*
+********************************************************************************
+*    Function: ai_load_drow_dialog
+* Description: 清空屏幕并在右上角显示"RST"
+*       Input: void
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_load_drow_dialog(void)
+{
+    ai_lcd_clear(AI_WHITE);
     ai_brush_color = AI_BLUE;
+    ai_lcd_show_str(ai_lcd_dev.width - 24, 0, 240, 16, 16, "RST");
+    ai_brush_color = AI_RED;
+}
+
+/*
+********************************************************************************
+*    Function: ai_gui_draw_hline
+* Description: 画水平线
+*       Input: (x0, y0) - 坐标
+*                   len - 线长度
+*                 color - 颜色
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_gui_draw_hline(u16 x0, u16 y0, u16 len, u16 color)
+{
+    if (len == 0)
+        return;
+    if ((x0 + len - 1) >= ai_lcd_dev.width)
+        x0 = ai_lcd_dev.width - len - 1;
+    if (y0 >= ai_lcd_dev.height)
+        y0 = ai_lcd_dev.height - 1;
+    ai_lcd_fill(x0, y0, x0 + len - 1, y0, color);
+}
+
+/*
+********************************************************************************
+*    Function: ai_gui_fill_circle
+* Description: 画实心圆
+*       Input: (x0, y0) - 坐标
+*                     r - 半径
+*                 color - 颜色
+*      Output: None
+*      Return: On success, 0 is returned,
+*              On error, -1 is returned.
+*      Others: None
+********************************************************************************
+*/
+void ai_gui_fill_circle(u16 x0, u16 y0, u16 r, u16 color)
+{
+    u32 i;
+    u32 imax = ((u32)r * 707) / 1000 + 1;
+    u32 sqmax = (u32)r * (u32)r + (u32)r / 2;
+    u32 x = r;
     
-    ai_lcd_show_str(30, 160, 240, 16, 16, "Count:");
-    ai_lcd_show_str(30, 180, 240, 16, 16, "Send Data:");
-    ai_lcd_show_str(30, 240, 240, 16, 16, "Receive Data:");
+    ai_gui_draw_hline(x0 - r, y0, 2 * r, color);
+    for (i = 1; i <= imax; i++) {
+        if ((i * i+ x * x) > sqmax) {
+            if (x > imax) {
+                ai_gui_draw_hline(x0 - i + 1, y0 + x, 2 * (i - 1), color);
+                ai_gui_draw_hline(x0 - i + 1, y0 - x, 2 * (i - 1), color);
+            }
+            x--;
+        }
+        
+        ai_gui_draw_hline(x0 - x, y0 + i, 2 * x, color);
+        ai_gui_draw_hline(x0 - x, y0 - i, 2 * x, color);
+    }
     
-    /* main loop */
+}
+
+/*
+********************************************************************************
+*    Function: ai_abs
+* Description: 两个数之差的绝对值
+*       Input: a, b -> 需取差值的两个数
+*      Output: None
+*      Return: |a - b|
+*      Others: None
+********************************************************************************
+*/
+u16 ai_abs(u16 a, u16 b)
+{
+    if (a > b)
+        return a - b;
+    else
+        return b - a;
+}
+
+/*
+********************************************************************************
+*    Function: ai_lcd_draw_bline
+* Description: 画一条粗线
+*       Input: (x1,y1),(x2,y2) -> 线条的起始坐标
+*                         size -> 线条的粗细程度
+*                        color -> 线条的颜色
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_lcd_draw_bline(u16 x1, u16 y1, u16 x2, u16 y2, u8 size, u16 color)
+{
+    u16 t;
+    int xerr = 0, yerr = 0, delta_x, delta_y, distance;
+    int incx, incy, urow, ucol;
+    
+    if (x1 < size || x2 < size || y1 < size || y2 < size)
+        return;
+    delta_x = x2 - x1;
+    delta_y = y2 - y1;
+    urow = x1;
+    ucol = y1;
+    
+    if (delta_x > 0) {
+        incx = 1;                           // 设置单步方向
+    } else if (delta_x == 0) {
+        incx = 0;                           // 垂直线
+    } else {
+        incx = -1;
+        delta_x = -delta_x;
+    }
+    
+    if (delta_y > 0) {
+        incy = 1;
+    } else if (delta_y == 0) {
+        incy = 0;                           // 水平线
+    } else {
+        incy = -1;
+        delta_y = -delta_y;
+    }
+    
+    if (delta_x > delta_y)
+        distance = delta_x;                 // 选取基本增量坐标轴
+    else
+        distance = delta_y; 
+	
+    for (t = 0; t <= distance + 1; t++) {   // 画线输出
+        ai_gui_fill_circle(urow, ucol, size, color);    // 画点
+        xerr += delta_x;
+        yerr += delta_y;
+        if (xerr > distance) {
+            xerr -= distance;
+            urow += incx;
+        }
+        if (yerr > distance) {
+            yerr -= distance;
+            ucol += incy;
+        }
+    }
+}
+
+/*
+********************************************************************************
+*    Function: ai_ctp_test
+* Description: 电容触摸屏测试函数
+*       Input: void
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_ctp_test(void)
+{
+    u8 i = 0, t = 0;
+    u16 last_pos[5][2] = {0};    // 最后一次的数据
+    
     while (1) {
-        key = ai_key_scan(0);
-        if (key == AI_KEY1_DOWN) {
-            mode = !mode;
-            ai_can1_mode_init(0, 8, 4, 5, mode);
-            ai_brush_color = AI_RED;
-            if (mode == 0)
-                ai_lcd_show_str(30, 120, 240, 16, 16, "Nnormal Mode ");
-            else
-                ai_lcd_show_str(30, 120, 240, 16, 16, "LoopBack Mode");
-            ai_brush_color = AI_BLUE;
-        }
-        
-        if (key == AI_KEY0_DOWN) {
-            for (i = 0; i < 8; i++) {
-                data_tmp[i] = cnt + i;
-                if (i < 4)
-                    ai_lcd_show_full_num(30 + i * 32, 200, data_tmp[i],
-                                         3, 16, 0x80);
-                else
-                    ai_lcd_show_full_num(30 + (i - 4) * 32, 220, data_tmp[i],
-                                         3, 16, 0x80);
-            }
-            
-            ret = ai_can1_send_msg(data_tmp, 8);
-            if (ret == -1)
-                ai_lcd_show_str(30 + 80, 180, 240, 16, 16, "Failed");
-            else
-                ai_lcd_show_str(30 + 80, 180, 240, 16, 16, "OK    ");
-        }
-        
-        ret = ai_can1_receive_msg(data_tmp);
-        if (ret) {
-            ai_lcd_fill(30, 260, 160, 310, AI_WHITE);
-            for (i = 0; i < ret; i++) {
-                if (i < 4)
-                    ai_lcd_show_full_num(30 + i * 32, 260, data_tmp[i],
-                                         3, 16, 0x80);
-                else
-                    ai_lcd_show_full_num(30 + (i - 4) * 32, 280, data_tmp[i],
-                                         3, 16, 0x80);
+        ai_tp_dev.scan(0);
+        for (i = 0; i < 5; i++) {
+            if (ai_tp_dev.stat & (0x1 << i)) {
+                if ((ai_tp_dev.x[i] < ai_lcd_dev.width)
+                    && (ai_tp_dev.y[i] < ai_lcd_dev.height)) {
+                    if (last_pos[i][0] == 0xffff) {
+                        last_pos[i][0] = ai_tp_dev.x[i];
+                        last_pos[i][1] = ai_tp_dev.y[i];
+                    }
+                    ai_lcd_draw_bline(last_pos[i][0], last_pos[i][1],
+                                      ai_tp_dev.x[i], ai_tp_dev.y[i],
+                                      2, ai_point_color_tbl[i]);
+                    last_pos[i][0] = ai_tp_dev.x[i];
+                    last_pos[i][1] = ai_tp_dev.y[i];
+                    if ((ai_tp_dev.x[i] > (ai_lcd_dev.width - 24))
+                        && (ai_tp_dev.y[i] < 20)) {
+                        ai_load_drow_dialog();
+                    }
+                }
+            } else {
+                last_pos[i][0] = 0xffff;
             }
         }
         
-        timeout++;
-        ai_delay_ms(10);
-        if (timeout == 20) {
+        ai_delay_ms(5);
+        t++;
+        if (t % 20 == 0)
             AI_DS0 = !AI_DS0;
-            timeout = 0;
-            cnt++;
-            ai_lcd_show_full_num(30 + 48, 160, cnt, 3, 16, 0x80);
-        }
     }
 }

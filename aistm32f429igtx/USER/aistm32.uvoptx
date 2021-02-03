@@ -408,8 +408,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\SPI\aispi.c</PathWithFileName>
-      <FilenameWithoutPath>aispi.c</FilenameWithoutPath>
+      <PathWithFileName>..\HARDWARE\TOUCHPANEL\aictpi2c.c</PathWithFileName>
+      <FilenameWithoutPath>aictpi2c.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -420,8 +420,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\W25QXX\aiw25qxx.c</PathWithFileName>
-      <FilenameWithoutPath>aiw25qxx.c</FilenameWithoutPath>
+      <PathWithFileName>..\HARDWARE\TOUCHPANEL\aift5206.c</PathWithFileName>
+      <FilenameWithoutPath>aift5206.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -432,8 +432,20 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\HARDWARE\CAN\aican.c</PathWithFileName>
-      <FilenameWithoutPath>aican.c</FilenameWithoutPath>
+      <PathWithFileName>..\HARDWARE\TOUCHPANEL\aitouch.c</PathWithFileName>
+      <FilenameWithoutPath>aitouch.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>4</GroupNumber>
+      <FileNumber>15</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\HARDWARE\SPI\aispi.c</PathWithFileName>
+      <FilenameWithoutPath>aispi.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -447,7 +459,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>5</GroupNumber>
-      <FileNumber>15</FileNumber>
+      <FileNumber>16</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>

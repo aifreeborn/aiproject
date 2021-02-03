@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN;..\HARDWARE\TOUCHPANEL</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -450,19 +450,24 @@
               <FilePath>..\HARDWARE\LTDC\ailcd.c</FilePath>
             </File>
             <File>
+              <FileName>aictpi2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TOUCHPANEL\aictpi2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>aift5206.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TOUCHPANEL\aift5206.c</FilePath>
+            </File>
+            <File>
+              <FileName>aitouch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TOUCHPANEL\aitouch.c</FilePath>
+            </File>
+            <File>
               <FileName>aispi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\SPI\aispi.c</FilePath>
-            </File>
-            <File>
-              <FileName>aiw25qxx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\W25QXX\aiw25qxx.c</FilePath>
-            </File>
-            <File>
-              <FileName>aican.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\CAN\aican.c</FilePath>
             </File>
           </Files>
         </Group>
