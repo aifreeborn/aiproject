@@ -20,7 +20,8 @@
 #include "ailcd.h"
 #include "aiw25qxx.h"
 #include "aitouch.h"
-#include "airemote.h"
+#include "aidht11.h"
+#include "aipcf8574.h"
 
 /*
 ********************************************************************************
@@ -53,9 +54,8 @@ void ai_ctp_test(void);
 */
 int main(void)
 {
-    u8 key = 0;
     u8 time = 0;
-    u8 *str;
+    u16 temperature, humidity;
     
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
@@ -69,7 +69,8 @@ int main(void)
     ai_lcd_init();
     ai_delay_ms(100);
     // ai_tp_dev.init();
-    ai_remote_init();
+    ai_pcf8574_init();
+    ai_pcf8574_read_bit(AI_PCF8574_INT);
      
     /* 设置外设的开始运行状态 */
     ai_led_on(AI_LED_DS0);
@@ -77,91 +78,37 @@ int main(void)
     
 	ai_brush_color = AI_RED; 
     ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32 F4");
-    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"REMOTE TEST");
+    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"REMOTE/DHT11 TEST");
     ai_lcd_show_str(30, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
     ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"KEYVAL:");
     ai_lcd_show_str(30, 120, 240, 16, 16, (u8 *)"KEYCNT:");
     ai_lcd_show_str(30, 140, 240, 16, 16, (u8 *)"SYMBOL:");
     ai_brush_color = AI_BLUE;
     
+    while (ai_dht11_init() != 0) {
+        ai_lcd_show_str(30, 160, 240, 16, 16, "DHT11 Error");
+        ai_delay_ms(200);
+        ai_lcd_fill(30, 160, 239, 160 + 16, AI_WHITE);
+        ai_delay_ms(200);
+    }
+    ai_lcd_show_str(30, 160, 240, 16, 16, "DHT11 OK");
+    ai_brush_color = AI_BLUE;
+    ai_lcd_show_str(30, 180, 240, 16, 16, "Temp:  .  C");
+    ai_lcd_show_str(30, 200, 240, 16, 16, "Humi:  .  %");
+    
     // ai_delay_ms(1500);
     // ai_load_drow_dialog();
     // ai_ctp_test();
     /* main loop */
     while (1) {
-        key = ai_remote_scan();
-        if (key) {
-            ai_lcd_show_num(86, 100, key, 3, 16);
-            ai_lcd_show_num(86, 120, ai_remote_cnt, 3, 16);
-            switch (key) {
-            case 0:
-                str = "ERROR";
-                break;
-            case 162:
-                str = "POWER";
-                break;
-            case 98:
-                str = "UP";
-                break;
-            case 2:
-                str = "PLAY";
-                break;
-            case 226:
-                str = "ALIENTEK";
-                break;
-            case 194:
-                str = "RIGHT";
-                break;
-            case 34:
-                str = "LEFT";
-                break;
-            case 224:
-                str = "VOL-";
-                break;
-            case 168:
-                str = "DOWN";
-                break;
-            case 144:
-                str = "VOL+";
-                break;
-            case 104:
-                str = "1";
-                break;
-            case 152:
-                str = "2";
-                break;
-            case 176:
-                str = "3";
-                break;
-            case 48:
-                str = "4";
-                break;
-            case 24:
-                str = "5";
-                break;
-            case 122:
-                str = "6";
-                break;
-            case 16:
-                str = "7";
-                break;
-            case 56:
-                str = "8";
-                break;
-            case 90:
-                str = "9";
-                break;
-            case 66:
-                str = "0";
-                break;
-            case 82:
-                str = "DELETE";
-                break;
-            }
-            ai_lcd_fill(86, 140, 116 + 8 * 8, 170 + 16, AI_WHITE);
-            ai_lcd_show_str(86, 140, 240, 16, 16, str);
-        }else
-            ai_delay_ms(10);
+        if (time % 10 == 0) {
+            ai_dht11_read_data(&temperature, &humidity);
+            ai_lcd_show_num(30 + 40, 180, (temperature >> 8) & 0xff, 2, 16);
+            ai_lcd_show_num(30 + 64, 180, temperature & 0xff, 2, 16);
+            ai_lcd_show_num(30 + 40, 200, (humidity >> 8) & 0xff, 2, 16);
+            ai_lcd_show_num(30 + 64, 200, humidity & 0xff, 2, 16);
+        }
+        ai_delay_ms(10);
         time++;
         if (time == 20) {
             time = 0;
