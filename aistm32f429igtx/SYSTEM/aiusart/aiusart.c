@@ -123,3 +123,21 @@ void ai_uart_init(u32 pclk2, u32 baudrate)
 #endif
 	USART1->CR1 |= 0x1 << 13;                           // 串口使能
 }
+
+/*
+********************************************************************************
+*    Function: ai_usart_putc
+* Description: 串口1发送1个字符
+*       Input: ch -> 待发送的字符
+*      Output: None
+*      Return: On success, 0 is returned,
+*              On error, -1 is returned.
+*      Others: None
+********************************************************************************
+*/
+void ai_usart_putc(u8 ch)
+{
+    while ((USART1->SR & 0x40) == 0)
+        ; /* Empty */
+    USART1->DR = ch;
+}

@@ -33,6 +33,7 @@ extern u16 AI_USART_RX_STA;         		     // 接收状态标记
 ********************************************************************************
 */ 
 void ai_uart_init(u32 pclk2, u32 baudrate);
+void ai_usart_putc(u8 ch);
     
 #ifdef __cplusplus
 }
