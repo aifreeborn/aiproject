@@ -20,8 +20,10 @@
 #include "ailcd.h"
 #include "aiw25qxx.h"
 #include "aitouch.h"
-#include "aidht11.h"
 #include "aipcf8574.h"
+#include "aimpu9250.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
 
 /*
 ********************************************************************************
@@ -47,6 +49,13 @@ void ai_lcd_draw_bline(u16 x1, u16 y1, u16 x2, u16 y2, u8 size, u16 color);
 void ai_lcd_draw_bline(u16 x1, u16 y1, u16 x2, u16 y2, u8 size, u16 color);
 void ai_ctp_test(void);
 
+// MPU9250测试
+void ai_usart1_niming_report(u8 fun, u8 *data, u8 len);
+void ai_mpu9250_send_data(short ax, short ay, short az,
+                          short gx, short gy, short gz);
+void ai_usart1_report_imu(short roll, short pitch,
+                          short yaw, short csb, int prs);
+
 /*
 ********************************************************************************
 *                              MAIN
@@ -55,7 +64,13 @@ void ai_ctp_test(void);
 int main(void)
 {
     u8 time = 0;
-    u16 temperature, humidity;
+    u8 report = 1;             // 默认开启上报
+    u8 key = AI_KEY_ALL_UP;
+    float pitch, roll, yaw;    // 欧拉角
+    short ax, ay, az;          // 加速度传感器原始数据
+    short gx, gy, gz;          // 陀螺仪原始数据
+    float temp;                // 温度
+    short tmp = 0;
     
     /* 设置时钟180MHz */
     ai_sys_clock_init(360, 25, 2, 8);
@@ -67,8 +82,8 @@ int main(void)
     ai_key_init();
     ai_wm9825g6kh_init();
     ai_lcd_init();
+    ai_mpu9250_init();
     ai_delay_ms(100);
-    // ai_tp_dev.init();
     ai_pcf8574_init();
     ai_pcf8574_read_bit(AI_PCF8574_INT);
      
@@ -77,43 +92,96 @@ int main(void)
     ai_led_off(AI_LED_DS1);
     
 	ai_brush_color = AI_RED; 
-    ai_lcd_show_str(30, 40, 240, 16, 16, (u8 *)"Apollo STM32 F4");
-    ai_lcd_show_str(30, 60, 240, 16, 16, (u8 *)"REMOTE/DHT11 TEST");
-    ai_lcd_show_str(30, 80, 240, 16, 16, (u8 *)"ATOM@ALIENTEK");
-    ai_lcd_show_str(30, 100, 240, 16, 16, (u8 *)"KEYVAL:");
-    ai_lcd_show_str(30, 120, 240, 16, 16, (u8 *)"KEYCNT:");
-    ai_lcd_show_str(30, 140, 240, 16, 16, (u8 *)"SYMBOL:");
-    ai_brush_color = AI_BLUE;
+    ai_lcd_show_str(30, 50, 200, 16, 16, (u8 *)"Apollo STM32 F4");
+    ai_lcd_show_str(30, 70, 200, 16, 16, (u8 *)"MPU9250 TEST");
+    ai_lcd_show_str(30, 90, 200, 16, 16, (u8 *)"ATOM@ALIENTEK");
+    ai_lcd_show_str(30, 110, 200, 16, 16, (u8 *)"2021-02-08");
     
-    while (ai_dht11_init() != 0) {
-        ai_lcd_show_str(30, 160, 240, 16, 16, "DHT11 Error");
+    while (ai_mpu_dmp_init()) {
+        ai_lcd_show_str(30, 130, 200, 16, 16, "MPU9250 Error");
         ai_delay_ms(200);
-        ai_lcd_fill(30, 160, 239, 160 + 16, AI_WHITE);
+        ai_lcd_fill(30, 130, 239, 130 + 16, AI_WHITE);
         ai_delay_ms(200);
+        AI_DS0 = !AI_DS0;
     }
-    ai_lcd_show_str(30, 160, 240, 16, 16, "DHT11 OK");
+    ai_lcd_show_str(30, 130, 200, 16, 16, "MPU9250 OK");
+    ai_lcd_show_str(30, 150, 200, 16, 16, "KEY0:UPLOAD ON/OFF");
     ai_brush_color = AI_BLUE;
-    ai_lcd_show_str(30, 180, 240, 16, 16, "Temp:  .  C");
-    ai_lcd_show_str(30, 200, 240, 16, 16, "Humi:  .  %");
+    ai_lcd_show_str(30, 170, 200, 16, 16, "UPLOAD ON ");
+    ai_lcd_show_str(30, 200, 200, 16, 16, " Temp:    . C");
+    ai_lcd_show_str(30, 220, 200, 16, 16, "Pitch:    . C");
+    ai_lcd_show_str(30, 240, 200, 16, 16, " Roll:    . C");
+    ai_lcd_show_str(30, 260, 200, 16, 16, " Yaw :    . C");
     
-    // ai_delay_ms(1500);
-    // ai_load_drow_dialog();
-    // ai_ctp_test();
     /* main loop */
     while (1) {
-        if (time % 10 == 0) {
-            ai_dht11_read_data(&temperature, &humidity);
-            ai_lcd_show_num(30 + 40, 180, (temperature >> 8) & 0xff, 2, 16);
-            ai_lcd_show_num(30 + 64, 180, temperature & 0xff, 2, 16);
-            ai_lcd_show_num(30 + 40, 200, (humidity >> 8) & 0xff, 2, 16);
-            ai_lcd_show_num(30 + 64, 200, humidity & 0xff, 2, 16);
+        key = ai_key_scan(0);
+        if (key == AI_KEY0_DOWN) {
+            report = !report;
+            if (report)
+                ai_lcd_show_str(30, 170, 200, 16, 16, "UPLOAD ON ");
+            else
+                ai_lcd_show_str(30, 170, 200, 16, 16, "UPLOAD OFF");
         }
-        ai_delay_ms(10);
+        
+        if (ai_mpu_mpl_get_data(&pitch, &roll, &yaw) == 0) {
+            temp = ai_mpu9250_get_temperature();
+            ai_mpu9250_get_accelerometer(&ax, &ay, &az);
+            ai_mpu9250_get_gyroscope(&gx, &gy, &gz);
+            if (report) {
+                ai_mpu9250_send_data(ax, ay, az, gx, gy, gz);
+                ai_usart1_report_imu((int)(roll * 100),
+                                     (int)(pitch * 100),
+                                     (int)(yaw * 100),
+                                      0, 0);
+            }
+            
+            if ((time % 10) == 0) {
+                if (temp < 0) {
+                    ai_lcd_show_char(30 + 48, 200, '-', 16, 0);
+                    temp = -temp;
+                } else {
+                    ai_lcd_show_char(30 + 48, 200, ' ', 16, 0);
+                }
+                tmp = temp * 10;
+                ai_lcd_show_num(30 + 48 + 8, 200, tmp / 10, 3, 16);
+                ai_lcd_show_num(30 + 48 + 40, 200, tmp % 10, 1, 16);
+                
+                tmp = pitch * 10;
+                if (tmp < 0) {
+                    ai_lcd_show_char(30 + 48, 220, '-', 16, 0);
+                    tmp = -tmp;
+                } else {
+                    ai_lcd_show_char(30 + 48, 220, ' ', 16, 0);
+                }
+                ai_lcd_show_num(30 + 48 + 8, 220, tmp / 10, 3, 16);
+                ai_lcd_show_num(30 + 48 + 40, 220, tmp % 10, 1, 16);
+                
+                tmp = roll * 10;
+                if (tmp < 0) {
+                    ai_lcd_show_char(30 + 48, 240, '-', 16, 0);
+                    tmp = -tmp;
+                } else {
+                    ai_lcd_show_char(30 + 48, 240, ' ', 16, 0);
+                }
+                ai_lcd_show_num(30 + 48 + 8, 240, tmp / 10, 3, 16);
+                ai_lcd_show_num(30 + 48 + 40, 240, tmp % 10, 1, 16);
+                
+                tmp = yaw * 10;
+                if (tmp < 0) {
+                    ai_lcd_show_char(30 + 48, 260, '-', 16, 0);
+                    tmp = -tmp;
+                } else {
+                    ai_lcd_show_char(30 + 48, 260, ' ', 16, 0);
+                }
+                ai_lcd_show_num(30 + 48 + 8, 260, tmp / 10, 3, 16);
+                ai_lcd_show_num(30 + 48 + 40, 260, tmp % 10, 1, 16);
+                
+                time = 0;
+                AI_DS0 = !AI_DS0;
+            }
+        }
         time++;
-        if (time == 20) {
-            time = 0;
-            AI_DS0 = !AI_DS0;
-        }
     }
 }
 
@@ -320,4 +388,112 @@ void ai_ctp_test(void)
         if (t % 20 == 0)
             AI_DS0 = !AI_DS0;
     }
+}
+
+/*
+********************************************************************************
+*    Function: ai_usart1_niming_report
+* Description: 传送数据给匿名四轴地面站(V4版本)
+*       Input: fun -> 功能字. 0X01~0X1C
+*             data -> 数据缓存区,最多28字节!!
+*              len -> data区有效数据个数
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_usart1_niming_report(u8 fun, u8 *data, u8 len)
+{
+    u8 buf[32];
+    u8 i;
+    
+    if (len > 28)
+        return;
+    buf[len + 3] = 0;
+    buf[0] = 0xaa;
+    buf[1] = 0xaa;
+    buf[2] = fun;
+    buf[3] = len;
+    for (i = 0; i < len; i++) {         // 复制数据
+        buf[4 + i] = data[i];
+    }
+    for (i = 0; i < len + 4; i++) {     // 计算校验和
+        buf[4 + len] += data[i];
+    }
+    for (i = 0; i < len + 5; i++) {     // 发送数据到串口1 
+        ai_usart_putc(buf[i]);
+    }
+}
+
+/*
+********************************************************************************
+*    Function: ai_mpu_send_data
+* Description: 发送加速度传感器数据+陀螺仪数据(传感器帧)
+*       Input: ax,ay,az -> x,y,z三个方向上面的加速度值
+*              gx,gy,gz -> x,y,z三个方向上面的陀螺仪值
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_mpu9250_send_data(short ax, short ay, short az,
+                          short gx, short gy, short gz)
+{
+    u8 tbuf[18] = {0};
+    
+    tbuf[0] = (ax >> 8) & 0xff;
+    tbuf[1] = ax & 0xff;
+    tbuf[2] = (ay >> 8) & 0xff;
+    tbuf[3] = ay & 0xff;
+    tbuf[4] = (az >> 8) & 0xff;
+    tbuf[5] = az & 0xff;
+    
+    tbuf[6] =(gx >> 8) & 0xff;
+    tbuf[7] = gx & 0xff;
+    tbuf[8] =(gy >> 8) & 0xff;
+    tbuf[9] = gy & 0xff;
+    tbuf[10] =(gz >> 8) & 0xff;
+    tbuf[11] = gz & 0xff;
+    // 因为开启MPL后,无法直接读取磁力计数据,所以这里直接屏蔽掉.用0替代.
+    tbuf[12] = 0;
+    tbuf[13] = 0;
+    tbuf[14] = 0;
+    tbuf[15] = 0;
+    tbuf[16] = 0;
+    tbuf[17] = 0;
+	ai_usart1_niming_report(0x02, tbuf, 18);    // 传感器帧,0x02
+}
+
+/*
+********************************************************************************
+*    Function: ai_usart1_report_imu
+* Description: 通过串口1上报结算后的姿态数据给电脑(状态帧)
+*       Input: roll -> 横滚角.单位0.01度 [-18000,18000]对应[-180.00,180.00]度
+*             pitch -> 俯仰角.单位 0.01度。-9000 - 9000 对应 -90.00 -> 90.00 度
+*               yaw -> 航向角.单位为0.1度 0 -> 3600  对应 0 -> 360.0度
+*               csb -> 超声波高度,单位:cm
+*               prs -> 气压计高度,单位:mm
+*      Output: None
+*      Return: void
+*      Others: None
+********************************************************************************
+*/
+void ai_usart1_report_imu(short roll, short pitch,
+                          short yaw, short csb, int prs)
+{
+    u8 tbuf[12] = {0};
+    
+    tbuf[0] = (roll >> 8) & 0xff;
+    tbuf[1] = roll & 0xff;
+    tbuf[2] = (pitch >> 8) & 0xff;
+    tbuf[3] = pitch & 0xff;
+    tbuf[4] = (yaw >> 8) & 0xff;
+    tbuf[5] = yaw & 0xff;
+    tbuf[6] = (csb >> 8) & 0xff;
+    tbuf[7] = csb & 0xff;
+    tbuf[8] = (prs >> 24) & 0xff;
+    tbuf[9] = (prs >> 16) & 0xff;
+    tbuf[10] = (prs >> 8) & 0xff;
+    tbuf[11] = prs & 0xff;
+    ai_usart1_niming_report(0x01, tbuf, 12);    // 状态帧,0X01
 }
