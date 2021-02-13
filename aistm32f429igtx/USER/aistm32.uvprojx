@@ -333,9 +333,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F429xx,USE_DMP,MPL_LOG_NDEBUG=1,EMPL,MPU9250,EMPL_TARGET_STM32F4</Define>
+              <Define>STM32F429xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN;..\HARDWARE\TOUCHPANEL;..\HARDWARE\REMOTE;..\HARDWARE\DHT11;..\HARDWARE\MPU9250;..\HARDWARE\MPU9250\MPL\mpl;..\HARDWARE\MPU9250\MPL\mllite;..\HARDWARE\MPU9250\MPL\eMPL-hal;..\HARDWARE\MPU9250\MPL\driver\eMPL;..\HARDWARE\MPU9250\MPL\driver\include;..\HARDWARE\MPU9250\MPL\driver\stm32L;..\HARDWARE\INFLASH</IncludePath>
+              <IncludePath>..\CORE\INC;..\SYSTEM\aidelay;..\SYSTEM\aigpio;..\SYSTEM\aisys;..\SYSTEM\aiusart;..\HARDWARE\LED;..\HARDWARE;..\HARDWARE\KEY;..\HARDWARE\EXTI;..\HARDWARE\IWDG;..\HARDWARE\WWDG;..\HARDWARE\TIMER;..\HARDWARE\TOUCHPAD;..\HARDWARE\SDRAM;..\HARDWARE\LTDC;..\USMART;..\HARDWARE\RTC;..\HARDWARE\RNG;..\HARDWARE\WKUP;..\HARDWARE\ADC;..\HARDWARE\DAC;..\HARDWARE\DMA;..\HARDWARE\IIC;..\HARDWARE\AT24CXX;..\HARDWARE\PCF8574;..\HARDWARE\AP3216C;..\HARDWARE\SPI;..\HARDWARE\W25QXX;..\HARDWARE\CAN;..\HARDWARE\TOUCHPANEL;..\HARDWARE\REMOTE;..\HARDWARE\DHT11;..\HARDWARE\MPU9250;..\HARDWARE\MPU9250\MPL\mpl;..\HARDWARE\MPU9250\MPL\mllite;..\HARDWARE\MPU9250\MPL\eMPL-hal;..\HARDWARE\MPU9250\MPL\driver\eMPL;..\HARDWARE\MPU9250\MPL\driver\include;..\HARDWARE\MPU9250\MPL\driver\stm32L;..\HARDWARE\INFLASH;..\SYSTEM\aimem</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -450,39 +450,9 @@
               <FilePath>..\HARDWARE\LTDC\ailcd.c</FilePath>
             </File>
             <File>
-              <FileName>aictpi2c.c</FileName>
+              <FileName>aimem.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\HARDWARE\TOUCHPANEL\aictpi2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>aift5206.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\TOUCHPANEL\aift5206.c</FilePath>
-            </File>
-            <File>
-              <FileName>aitouch.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\TOUCHPANEL\aitouch.c</FilePath>
-            </File>
-            <File>
-              <FileName>aispi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\SPI\aispi.c</FilePath>
-            </File>
-            <File>
-              <FileName>aipcf8574.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\PCF8574\aipcf8574.c</FilePath>
-            </File>
-            <File>
-              <FileName>aii2c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\IIC\aii2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>aiinflash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\INFLASH\aiinflash.c</FilePath>
+              <FilePath>..\SYSTEM\aimem\aimem.c</FilePath>
             </File>
           </Files>
         </Group>
