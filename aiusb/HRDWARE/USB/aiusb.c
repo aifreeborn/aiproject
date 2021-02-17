@@ -154,6 +154,9 @@ void ai_usb_bus_reset(void)
 *******************************************************************************/
 static void ai_usb_ep0_send_data(void)
 {
+    // 将数据写到端点中去,准备发送写之前要先判断一下需要发送的数据是否比端点0
+    // 最大长度大，如果超过端点大小，则一次只能发送最大包长的数据。
+    // 端点0的最大包长在ai_device_desc[7]
     if (ai_send_length > ai_device_desc[7]) {
         ai_d12_write_endp_buf(1, ai_device_desc[7], ai_send_data);
         ai_send_length -= ai_device_desc[7];
@@ -214,7 +217,7 @@ void ai_usb_ep0_out(void)
                         ai_send_data = ai_device_desc;
                         // 判断请求的字节数是否比实际需要发送的字节数多
                         // 这里请求的是设备描述符，因此数据长度就是
-                        // DeviceDescriptor[0]。如果请求的比实际的长，
+                        // ai_device_desc[0]。如果请求的比实际的长，
                         // 那么只返回实际长度的数据
                         if (ai_length > ai_device_desc[0]) {
                             ai_send_length = ai_device_desc[0];
@@ -226,13 +229,19 @@ void ai_usb_ep0_out(void)
                         ai_usb_ep0_send_data();
                         break;
                     case AIUSB_CONFIGURATION_DESCRIPTOR:
+                        ai_uart_send_str("配置描述符.\r\n");
                         break;
                     case AIUSB_STRING_DESCRIPTOR:
+                        ai_uart_send_str("字符串描述符.\r\n");
                         break;
                     case AIUSB_INTERFACE_DESCRIPTOR:
                         break;
                     case AIUSB_ENDPOINT_DESCRIPTOR:
                         break;
+                    default:
+                        ai_uart_send_str("其它描述符, 描述符代码:");
+                        ai_uart_print_hex((ai_value >> 8) & 0xff);
+                        ai_uart_send_str("\r\n");
                     }
                     break;
                 case AIUSB_GET_CONFIGURATION:
@@ -270,7 +279,15 @@ void ai_usb_ep0_out(void)
                     ai_uart_send_str("设置特性.\r\n");
                     break;
                 case AIUSB_SET_ADDRESS:
-                    ai_uart_send_str("设置地址.\r\n");
+                    ai_uart_send_str("设置地址，地址为：");
+                    ai_uart_print_hex(ai_value & 0xff);
+                    ai_uart_send_str("\r\n");
+                    ai_d12_set_addr(ai_value & 0xff);
+                    // 设置地址没有数据过程，直接进入到状态过程，
+                    // 返回一个0长度的数据包
+                    ai_send_length = 0;
+                    ai_need_zero_packet = 1;
+                    ai_usb_ep0_send_data();
                     break;
                 case AIUSB_SET_DESCRIPTOR:
                     ai_uart_send_str("设置描述符.\r\n");
@@ -279,7 +296,7 @@ void ai_usb_ep0_out(void)
                     ai_uart_send_str("设置配置.\r\n");
                     break;
                 case AIUSB_SET_INTERFACE:
-                 ai_uart_send_str("设置接口.\r\n");
+                    ai_uart_send_str("设置接口.\r\n");
                     break;
                 default:
                     ai_uart_send_str("错误：未定义的标准输出请求.\r\n");

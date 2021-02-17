@@ -226,3 +226,16 @@ uint8 ai_d12_write_endp_buf(uint8 num, uint8 len, uint8 *buf)
 
     return len;
 } 
+
+/*******************************************************************************
+* Function：设置地址函数
+* Input   : addr -- 要设置的地址值
+* Ouput   : None
+* Return  : void
+* Others  :
+*******************************************************************************/
+void ai_d12_set_addr(uint8 addr)
+{
+    ai_d12_write_cmd(AI_D12_SET_ADDR_ENABLE);
+    ai_d12_write_byte(0x80 | addr);              // 写一字节数据：使能及地址
+}
