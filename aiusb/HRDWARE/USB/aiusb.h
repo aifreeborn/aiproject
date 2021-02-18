@@ -22,7 +22,16 @@
 #define    AIUSB_ENDPOINT_DESCRIPTOR         5
 #define    AIUSB_REPORT_DESCRIPTOR           0x22
 
-extern uint8 ai_usb_ep1_in_is_busy;
+// The following table defines valid values of bRequest
+#define    AIUSB_REQUSET_GET_REPORT      0x01
+#define    AIUSB_REQUSET_GET_IDLE        0x02
+#define    AIUSB_REQUSET_GET_PROTOCOL    0x03
+#define    AIUSB_REQUSET_SET_REPORT      0x09
+#define    AIUSB_REQUSET_SET_IDLE        0x0a
+#define    AIUSB_REQUSET_SET_PROTOCOL    0x0b
+
+extern uint8 ai_ep1_in_is_busy;
+extern uint8 ai_config_value;
 
 void ai_usb_disconnect(void);
 void ai_usb_connect(void);

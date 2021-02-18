@@ -239,3 +239,19 @@ void ai_d12_set_addr(uint8 addr)
     ai_d12_write_cmd(AI_D12_SET_ADDR_ENABLE);
     ai_d12_write_byte(0x80 | addr);              // 写一字节数据：使能及地址
 }
+
+/*******************************************************************************
+* Function：使能端点函数
+* Input   : enable -- 是否使能。0值为不使能，非0值为使能。
+* Ouput   : None
+* Return  : void
+* Others  :
+*******************************************************************************/
+void ai_d12_set_endp_enable(uint8 enable)
+{
+    ai_d12_write_cmd(AI_D12_SET_ENDPOINT_ENABLE);
+    if (enable != 0)
+        ai_d12_write_byte(0x01);    // D0为1使能端点
+    else
+        ai_d12_write_byte(0x00);
+}

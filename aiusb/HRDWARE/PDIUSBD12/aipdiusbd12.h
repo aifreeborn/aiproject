@@ -98,5 +98,6 @@ uint8 ai_d12_read_endp_last_stat(uint8 num);
 void ai_d12_validate_buf(void);
 uint8 ai_d12_write_endp_buf(uint8 num, uint8 len, uint8 *buf);
 void ai_d12_set_addr(uint8 addr);
+    void ai_d12_set_endp_enable(uint8 enable);
 
 #endif /* AI_PDIUSBD12_H_ */
