@@ -20,82 +20,6 @@ static code uint8 ai_header_tbl[][74] = {
 
 void ai_send_report(void);
 
-void ai_key_down_scan(void)
-{
-    if (ai_keys_down) {
-        if (ai_keys_down & AI_KEY1) {
-            ai_uart_send_str("KEY1 down\r\n");
-            ai_keys_down &= ~AI_KEY1;
-        }
-        if (ai_keys_down & AI_KEY2) {
-            ai_uart_send_str("KEY2 down\r\n");
-            ai_keys_down &= ~AI_KEY2;
-        }
-        if (ai_keys_down & AI_KEY3) {
-            ai_uart_send_str("KEY3 down\r\n");
-            ai_keys_down &= ~AI_KEY3;
-        }
-        if (ai_keys_down & AI_KEY4) {
-            ai_uart_send_str("KEY4 down\r\n");
-            ai_keys_down &= ~AI_KEY4;
-        }
-        if (ai_keys_down & AI_KEY5) {
-            ai_uart_send_str("KEY5 down\r\n");
-            ai_keys_down &= ~AI_KEY5;
-        }
-        if (ai_keys_down & AI_KEY6) {
-            ai_uart_send_str("KEY6 down\r\n");
-            ai_keys_down &= ~AI_KEY6;
-        }
-        if (ai_keys_down & AI_KEY7) {
-            ai_uart_send_str("KEY7 down\r\n");
-            ai_keys_down &= ~AI_KEY7;
-        }
-        if (ai_keys_down & AI_KEY8) {
-            ai_uart_send_str("KEY8 down\r\n");
-            ai_keys_down &= ~AI_KEY8;
-        }
-    }
-}
-
-void ai_key_up_scan(void)
-{
-    if (ai_keys_up) {
-        if (ai_keys_up & AI_KEY1) {
-            ai_uart_send_str("KEY1 up\r\n");
-            ai_keys_up &= ~AI_KEY1; 
-        }
-        if (ai_keys_up & AI_KEY2) {
-            ai_uart_send_str("KEY2 up\r\n");
-            ai_keys_up &= ~AI_KEY2; 
-        }
-        if (ai_keys_up & AI_KEY3) {
-            ai_uart_send_str("KEY3 up\r\n");
-            ai_keys_up &= ~AI_KEY3; 
-        }
-        if (ai_keys_up & AI_KEY4) {
-            ai_uart_send_str("KEY4 up\r\n");
-            ai_keys_up &= ~AI_KEY4; 
-        }
-        if (ai_keys_up & AI_KEY5) {
-            ai_uart_send_str("KEY5 up\r\n");
-            ai_keys_up &= ~AI_KEY5; 
-        }
-        if (ai_keys_up & AI_KEY6) {
-            ai_uart_send_str("KEY6 up\r\n");
-            ai_keys_up &= ~AI_KEY6; 
-        }
-        if (ai_keys_up & AI_KEY7) {
-            ai_uart_send_str("KEY7 up\r\n");
-            ai_keys_up &= ~AI_KEY7; 
-        }
-        if (ai_keys_up & AI_KEY8) {
-            ai_uart_send_str("KEY8 up\r\n");
-            ai_keys_up &= ~AI_KEY8; 
-        }
-    }
-}
-
 void main()
 {
     uint8 i;
@@ -151,10 +75,9 @@ void main()
         // 如果已经设置为非0的配置，则可以返回报告数据
         if (ai_config_value != 0) {
             // 利用板上8个LED显示按键状态，按下时亮
-            AI_ALL_LEDS = ~ai_keys_pressed;
             if (!ai_ep1_in_is_busy) {
                 ai_keys_can_change = 0;    // 禁止按键扫描
-                if (ai_keys_down || ai_keys_up || ai_keys_pressed)
+                if (ai_keys_down || ai_keys_up)
                     ai_send_report();
                 ai_keys_can_change = 1;
             }
@@ -167,58 +90,55 @@ void main()
 * Input   : 无
 * Ouput   : None
 * Return  : None
-* Others  : 需要返回的4字节报告的缓冲
-*           Buf[0]的D0就是左键，D1就是右键，D2就是中键（这里没有）
-*           Buf[1]为X轴，Buf[2]为Y轴，Buf[3]为滚轮。
+* Others  : 需要返回的8字节报告的缓冲
+*           通过报告描述符的定义及HID用途表文档，可知Buf[0]的D0是左Ctrl键，
+*           D1是左Shift键，D2是左Alt键，D3是左GUI（即Window键），
+*           D4是右Ctrl，D5是右Shift，D6是右Alt，D7是右GUI键。
+*           Buf[1]保留，值为0。Buf[2]~Buf[7]为键值，最多可以有6个。
+*           由于我们这里普通键最多只有5个，因此不会超过6个。
+*           对于实际的键盘，如果按键数太多时，后面的6个字节都为0xFF，
+*           表示按下的键太多，无法正确返回。
 *******************************************************************************/
 void ai_send_report(void)
 {
-    uint8 buf[4] = {0};
-    
-    // 我们不需要KEY1~KEY6按键改变的信息，所以先将它们清0
-    ai_keys_up &= ~(AI_KEY1 | AI_KEY2 | AI_KEY3 | AI_KEY4 | AI_KEY5 | AI_KEY6);
-    ai_keys_down &= ~(AI_KEY1 | AI_KEY2 | AI_KEY3 | AI_KEY4 | AI_KEY5 | AI_KEY6);
+    uint8 buf[8] = {0};
+    // 由于需要返回多个按键，所以需要增加一个变量来保存当前的位置
+    uint8 i = 2;
 
-    // 如果有按键按住，并且不是KEY7、KEY8（左、右键）
-    // 或者KEY7、KEY8任何一个键有变动的话，则需要返回报告
-    if ((ai_keys_pressed & (~(AI_KEY7 | AI_KEY8)))
-        || ai_keys_up || ai_keys_down) {
-        // 如果KEY1按住，则光标需要左移，即X轴为负值
-        if (ai_keys_pressed & AI_KEY1) {
-            buf[1] |= -1;                   // 这里一次往左移动一个单位
-        }
-        // 如果KEY2按住，则光标需要右移，即X轴为正值
-        if (ai_keys_pressed & AI_KEY2) {
-            buf[1] |= 1;                    // 这里一次往右移动一个单位
-        }
-        // 如果KEY3按住，则光标需要上移，即Y轴为负值
-        if (ai_keys_pressed & AI_KEY3) {
-            buf[2] |= -1;                   // 这里一次往上移动一个单位
-        }
-        // 如果KEY4按住，则光标需要下移，即Y轴为正值
-        if (ai_keys_pressed & AI_KEY4) {
-            buf[2] |= 1;                    // 这里一次往下移动一个单位
-        }
-        // 如果KEY5按住，则滚轮下滚，即滚轮值为负
-        if (ai_keys_pressed & AI_KEY5) {
-            buf[3] |= -1;                   // 这里一次往下滚动一个单位
-        }
-        // 如果KEY6按住，则滚轮上滚，既滚轮值为正
-        if (ai_keys_pressed & AI_KEY6) {
-            buf[3] |= 1;                    // KEY6为数字小键盘3键
-        }
-        // 鼠标左键
-        if (ai_keys_pressed & AI_KEY7) {
-            buf[0] |= 0x01;                 // D0为鼠标左键
-        }
-        // 鼠标右键
-        if (ai_keys_pressed & AI_KEY8) {
-            buf[0] |= 0x02;                 // D1为鼠标右键
-        }
-    
-        ai_d12_write_endp_buf(3, 4, buf);
-        ai_ep1_in_is_busy = 1;
+    // 根据不同的按键设置输入报告
+    if (ai_keys_pressed & AI_KEY1) {
+        buf[0] |= 0x01;                   // KEY1为左Ctrl键
     }
+    if (ai_keys_pressed & AI_KEY2) {
+        buf[0] |= 0x02;                   // KEY2为左Shift键
+    }
+    if (ai_keys_pressed & AI_KEY3) {
+        buf[0] |= 0x04;                   // KEY3为左Alt键
+    }
+    if (ai_keys_pressed & AI_KEY4) {
+        buf[i] = 0x59;                    // KEY4为数字小键盘1键
+        i++;
+    }
+    if (ai_keys_pressed & AI_KEY5) {
+        buf[i] = 0x5a;                    // KEY5数字小键盘2键
+        i++;
+    }
+    if (ai_keys_pressed & AI_KEY6) {  
+        buf[i] = 0x5b;                    // KEY6为数字小键盘3键
+        i++;
+    }
+    if (ai_keys_pressed & AI_KEY7) {
+        buf[i] = 0x39;                    // KEY7为大/小写切换键
+        i++;
+    }
+    if (ai_keys_pressed & AI_KEY8) {
+        buf[i] = 0x53;                    // KEY8为数字小键盘功能切换键
+    }
+
+    // 报告准备好了，通过端点1返回，长度为8字节
+    ai_d12_write_endp_buf(3, 8, buf);
+    // 设置端点忙标志
+    ai_ep1_in_is_busy = 1;
     ai_keys_down = 0;
     ai_keys_up = 0;
 }
