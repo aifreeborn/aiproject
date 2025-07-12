@@ -52,6 +52,7 @@ void NMI_Handler(void)
 {
 }
 
+#if 0
 /**
   * @brief  This function handles Hard Fault exception.
   * @param  None
@@ -64,6 +65,7 @@ void HardFault_Handler(void)
   {
   }
 }
+#endif
 
 /**
   * @brief  This function handles Memory Manage exception.
@@ -122,6 +124,7 @@ void DebugMon_Handler(void)
 {
 }
 
+#if 0
 /**
   * @brief  This function handles PendSVC exception.
   * @param  None
@@ -130,7 +133,10 @@ void DebugMon_Handler(void)
 void PendSV_Handler(void)
 {
 }
+#endif
 
+// 移植rtos将其定义放到board.c中
+#if 0
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
@@ -140,6 +146,7 @@ void SysTick_Handler(void)
 {
   HAL_IncTick();
 }
+#endif
 
 /******************************************************************************/
 /*                 STM32F1xx Peripherals Interrupt Handlers                   */
