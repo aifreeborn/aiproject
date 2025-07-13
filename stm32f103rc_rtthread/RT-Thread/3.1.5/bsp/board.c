@@ -47,6 +47,8 @@ void rt_hw_board_init(void)
     // 系统时钟初始化为72MHz
     SystemClock_Config();
     HAL_SYSTICK_Config(HAL_RCC_GetSysClockFreq() / RT_TICK_PER_SECOND);
+    
+    LED_GPIO_Config();
 
     /* 
      * TODO 1: OS Tick Configuration
@@ -132,14 +134,36 @@ void SystemClock_Config(void)
 
 static int uart_init(void)
 {
-#error "TODO 2: Enable the hardware uart and config baudrate."
+    DEBUG_USART_Config();
     return 0;
 }
 INIT_BOARD_EXPORT(uart_init);
 
+/**
+ * @brief 重映射串口 DEBUG_USARTx 到 rt_kprintf()函数
+ * Note： DEBUG_USARTx 是在 bsp_usart.h 中定义的宏，默认使用串口 1
+ * @param str：要输出到串口的字符串
+ * @retval 无
+ *
+ * @attention
+ *
+ */
 void rt_hw_console_output(const char *str)
 {
-#error "TODO 3: Output the string 'str' through the uart."
+    /* 进入临界段 */
+    rt_enter_critical();
+
+    /* 直到字符串结束 */
+    while (*str!='\0') {
+        /* 换行 */
+        if (*str=='\n') {
+            HAL_UART_Transmit( &UartHandle,(uint8_t *)'\r',1,1000);
+        }
+        HAL_UART_Transmit( &UartHandle,(uint8_t *)(str++),1,1000);
+    }
+
+    /* 退出临界段 */
+    rt_exit_critical();
 }
 
 #endif

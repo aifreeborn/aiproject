@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,USE_HAL_LEGACY,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Core\Include;..\Hardware\led;..\Libraries\Inc;..\Libraries\Inc\Legacy;..\User\Include;..\RT-Thread\3.1.5\bsp;..\RT-Thread\3.1.5\include;..\RT-Thread\3.1.5\components\device;..\RT-Thread\3.1.5\components\finsh;..\Hardware\delay</IncludePath>
+              <IncludePath>..\Core\Include;..\Hardware\led;..\Libraries\Inc;..\Libraries\Inc\Legacy;..\User\Include;..\RT-Thread\3.1.5\bsp;..\RT-Thread\3.1.5\include;..\RT-Thread\3.1.5\components\device;..\RT-Thread\3.1.5\components\finsh;..\Hardware\delay;..\Hardware\usart</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -428,6 +428,11 @@
               <FileName>core_delay.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Hardware\delay\core_delay.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_debug_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\usart\bsp_debug_usart.c</FilePath>
             </File>
           </Files>
         </Group>
